@@ -1,0 +1,14 @@
+*
+!.gitignore
+!_cache/
+!_cron/
+!_dumps/
+!_graphs/
+!_lock/
+!_log/
+!_pictures/
+!_rss/
+!_sessions/
+!_tmp/
+!_uploads/
+!.htaccess

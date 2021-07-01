@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -78,7 +78,7 @@ if (isset($_GET['node'])) {
          $nodes[] = $path;
       }
    } else { // standard node
-      $node_id = $_GET['node'];
+      $node_id = preg_replace('/r$/', '', $_GET['node']);
       $iterator = $DB->request([
          'SELECT' => [
             'ent.id',

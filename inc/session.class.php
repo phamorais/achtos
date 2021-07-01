@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,6 +29,8 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
+
+use Glpi\Event;
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -1312,9 +1314,9 @@ class Session {
       }
 
       $_SESSION['glpiidortokens'][$token] = [
-         'itemtype' => $itemtype,
          'expires'  => time() + GLPI_IDOR_EXPIRES
-      ] + $add_params;
+      ] + ($itemtype !== "" ? ['itemtype' => $itemtype] : [])
+        + $add_params;
 
       return $token;
    }
@@ -1343,14 +1345,30 @@ class Session {
 
       if (isset($_SESSION['glpiidortokens'][$token])
           && $_SESSION['glpiidortokens'][$token]['expires'] >= time()) {
-         $params =  $_SESSION['glpiidortokens'][$token];
-         unset($params['expires']);
+         $idor_data =  $_SESSION['glpiidortokens'][$token];
+         unset($idor_data['expires']);
 
-         // check all stored keys/values are present and identical in provided data
-         $keys_exists = array_intersect_assoc($params, $data);
-         if ($params == $keys_exists) {
-            return true;
-         }
+         // check all stored data for the idor token are present (and identifical) in the posted data
+         $match_expected = function ($expected, $given) use (&$match_expected) {
+            if (is_array($expected)) {
+               if (!is_array($given)) {
+                  return false;
+               }
+               foreach ($expected as $key => $value) {
+                  if (!array_key_exists($key, $given) || !$match_expected($value, $given[$key])) {
+                     return false;
+                  }
+               }
+               return true;
+            } else {
+               return $expected == $given;
+            }
+         };
+
+         // Check also unsanitized data, as sanitizing process may alter expected data.
+         $unsanitized_data = Toolbox::stripslashes_deep($data);
+
+         return $match_expected($idor_data, $data) || $match_expected($idor_data, $unsanitized_data);
       }
 
       return false;
@@ -1444,6 +1462,9 @@ class Session {
          return false;
       }
 
+      //store user who impersonated another user
+      $impersonator = $_SESSION['glpiname'];
+
       // Store current user values
       $impersonator_id  = self::isImpersonateActive()
          ? $_SESSION['impersonator_id']
@@ -1462,6 +1483,9 @@ class Session {
       Session::loadLanguage();
 
       $_SESSION['impersonator_id'] = $impersonator_id;
+
+      Event::log(-1, "system", 3, "Impersonate", sprintf(__('%1$s starts impersonating user %2$s'),
+                                                            $impersonator, $user->fields['name']));
 
       return true;
    }
@@ -1482,10 +1506,16 @@ class Session {
          return false;
       }
 
+      //store user which was impersonated by another user
+      $impersonate_user = $_SESSION['glpiname'];
+
       $auth = new Auth();
       $auth->auth_succeded = true;
       $auth->user = $user;
       Session::init($auth);
+
+      Event::log(-1, "system", 3, "Impersonate", sprintf(__('%1$s stops impersonating user %2$s'),
+      $user->fields['name'], $impersonate_user));
 
       return true;
    }
@@ -1527,6 +1557,69 @@ class Session {
     * @return int
     */
    public static function getActiveEntity() {
-      return $_SESSION['glpiactive_entity'];
+      return $_SESSION['glpiactive_entity'] ?? 0;
+   }
+
+   /**
+    * Get recursive state of active entity selection.
+    *
+    * @since 9.5.5
+    *
+    * @return bool
+    */
+   public static function getIsActiveEntityRecursive(): bool {
+      return $_SESSION['glpiactive_entity_recursive'] ?? false;
+   }
+
+   /**
+    * Start session for a given user
+    *
+    * @param int $users_id ID of the user
+    *
+    * @return User|bool
+    */
+   public static function authWithToken(
+      string $token,
+      string $token_type,
+      ?int $entities_id,
+      ?bool $is_recursive
+   ) {
+      $user = new User();
+
+      // Try to load from token
+      if (!$user->getFromDBByToken($token, $token_type)) {
+         return false;
+      }
+
+      $auth = new Auth();
+      $auth->auth_succeded = true;
+      $auth->user = $user;
+      Session::init($auth);
+
+      if (!is_null($entities_id) && !is_null($is_recursive)) {
+         self::loadEntity($entities_id, $is_recursive);
+      }
+
+      return $user;
+   }
+
+   /**
+    * Load given entity.
+    *
+    * @param integer $entities_id  Entity to use
+    * @param boolean $is_recursive Whether to load entities recursivly or not
+    *
+    * @return void
+    */
+   public static function loadEntity($entities_id, $is_recursive): void {
+      $_SESSION["glpiactive_entity"]           = $entities_id;
+      $_SESSION["glpiactive_entity_recursive"] = $is_recursive;
+      if ($is_recursive) {
+         $entities = getSonsOf("glpi_entities", $entities_id);
+      } else {
+         $entities = [$entities_id];
+      }
+      $_SESSION['glpiactiveentities']        = $entities;
+      $_SESSION['glpiactiveentities_string'] = "'".implode("', '", $entities)."'";
    }
 }

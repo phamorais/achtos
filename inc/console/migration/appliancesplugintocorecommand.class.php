@@ -2,8 +2,8 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
- * Yves TESNIERE
+ * Copyright (C) 2015-2021 Teclib' and contributors.
+ *
  * http://glpi-project.org
  *
  * based on GLPI - Gestionnaire Libre de Parc Informatique
@@ -275,6 +275,12 @@ class AppliancesPluginToCoreCommand extends AbstractCommand {
     * @return bool
     */
    private  function migratePlugin(): bool {
+      global $CFG_GLPI;
+
+      //prevent infocom creation from general setup
+      if (isset($CFG_GLPI["auto_create_infocoms"]) && $CFG_GLPI["auto_create_infocoms"]) {
+         $CFG_GLPI['auto_create_infocoms'] = false;
+      }
       $this->cleanCoreTables();
 
       return $this->createApplianceTypes()

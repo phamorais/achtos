@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -466,7 +466,7 @@ class Notification extends CommonDBTM {
             $notification_notificationtemplate->showFormMassiveAction($ma);
             return true;
          case 'remove_all_template':
-            //no subform
+            echo Html::submit(__('Delete'), ['name' => 'massiveaction']);
             return true;
       }
       return false;
@@ -584,13 +584,13 @@ class Notification extends CommonDBTM {
     * @param $entity
    **/
    static function getMailingSignature($entity) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
-      foreach ($DB->request('glpi_entities', ['id' => $entity]) as $data) {
-         if (!empty($data['mailing_signature'])) {
-            return $data['mailing_signature'];
-         }
+      $signature = trim(Entity::getUsedConfig('mailing_signature', $entity, '', ''));
+      if (strlen($signature) > 0) {
+         return $signature;
       }
+
       return $CFG_GLPI['mailing_signature'];
    }
 

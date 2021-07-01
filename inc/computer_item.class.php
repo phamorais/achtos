@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -682,7 +682,9 @@ class Computer_Item extends CommonDBRelation{
          'itemtype'        => $itemtype,
          'onlyglobal'      => $onlyglobal,
          'used'            => $used,
-         '_idor_token'     => Session::getNewIDORToken($itemtype),
+         '_idor_token'     => Session::getNewIDORToken($itemtype, [
+            'entity_restrict' => $entity_restrict,
+         ]),
       ];
 
       echo Html::jsAjaxDropdown($myname, $field_id,

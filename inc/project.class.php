@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -741,7 +741,8 @@ class Project extends CommonDBTM implements ExtraVisibilityCriteria {
                ],
             ],
          ],
-         'computation'        => '(SUM('.$DB->quoteName('TABLE.cost').'))'
+         'computation'        => '(SUM('.$DB->quoteName('TABLE.cost').'))',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       $itil_count_types = [
@@ -1984,6 +1985,7 @@ class Project extends CommonDBTM implements ExtraVisibilityCriteria {
             ]
          ];
       }
+      $criteria += getEntitiesRestrictCriteria(self::getTable(), '', '', 'auto');
       $iterator = $DB->request(array_merge_recursive([
          'SELECT'   => [
             'glpi_projects.id',
@@ -2047,6 +2049,7 @@ class Project extends CommonDBTM implements ExtraVisibilityCriteria {
       $projectteam = new ProjectTeam();
       $project = new Project();
       $project_visibility = self::getVisibilityCriteria();
+      $project_visibility['WHERE'] += getEntitiesRestrictCriteria(self::getTable(), '', '', 'auto');
       $request = [
          'SELECT' => [
             'glpi_projects.*',
@@ -2384,7 +2387,7 @@ class Project extends CommonDBTM implements ExtraVisibilityCriteria {
                ],
                'entities_id' => [
                   'type'   => 'hidden',
-                  'value'  => $_SESSION['glpiactive_entity']
+                  'value'  => $ID > 0 ? $project->fields["entities_id"] : $_SESSION['glpiactive_entity'],
                ],
                'is_recursive' => [
                   'type'   => 'hidden',
@@ -2419,7 +2422,7 @@ class Project extends CommonDBTM implements ExtraVisibilityCriteria {
                ],
                'entities_id' => [
                   'type'   => 'hidden',
-                  'value'  => $_SESSION['glpiactive_entity']
+                  'value'  => $ID > 0 ? $project->fields["entities_id"] : $_SESSION['glpiactive_entity'],
                ],
                'is_recursive' => [
                   'type'   => 'hidden',
@@ -2447,7 +2450,7 @@ class Project extends CommonDBTM implements ExtraVisibilityCriteria {
 
       echo "<div id='kanban' class='kanban'></div>";
       $darkmode = ($_SESSION['glpipalette'] === 'darker') ? 'true' : 'false';
-      $canadd_item = json_encode(self::canCreate() || ProjectTask::canCreate());
+      $canadd_item = json_encode($ID > 0 ? $project->canEdit($ID) && $project->can($ID, UPDATE) : self::canCreate() || ProjectTask::canCreate());
       $canmodify_view = json_encode(($ID == 0 || $project->canModifyGlobalState()));
       $cancreate_column = json_encode((bool)ProjectState::canCreate());
       $limit_addcard_columns = $canmodify_view !== 'false' ? '[]' : json_encode([0]);

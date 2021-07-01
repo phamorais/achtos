@@ -155,12 +155,12 @@
     ),
     'laminas/laminas-mail' => 
     array (
-      'pretty_version' => '2.12.0',
-      'version' => '2.12.0.0',
+      'pretty_version' => '2.12.5',
+      'version' => '2.12.5.0',
       'aliases' => 
       array (
       ),
-      'reference' => '5e8bc77db515c2a207ee25df5f3464f121daf225',
+      'reference' => 'ed5b36a0deef4ffafe6138c2ae9cafcffafab856',
     ),
     'laminas/laminas-mime' => 
     array (
@@ -236,12 +236,12 @@
     ),
     'monolog/monolog' => 
     array (
-      'pretty_version' => '2.1.0',
-      'version' => '2.1.0.0',
+      'pretty_version' => '2.2.0',
+      'version' => '2.2.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => '38914429aac460e8e4616c8cb486ecb40ec90bb1',
+      'reference' => '1cb1cde8e8dd0f70cc0fe51354a59acad9302084',
     ),
     'paragonie/random_compat' => 
     array (
@@ -252,12 +252,12 @@
     ),
     'paragonie/sodium_compat' => 
     array (
-      'pretty_version' => 'v1.13.0',
-      'version' => '1.13.0.0',
+      'pretty_version' => 'v1.14.0',
+      'version' => '1.14.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'bbade402cbe84c69b718120911506a3aa2bae653',
+      'reference' => 'a1cfe0b21faf9c0b61ac0c6188c4af7fd6fd0db3',
     ),
     'phpmailer/phpmailer' => 
     array (
@@ -498,10 +498,12 @@
     ),
     'symfony/polyfill-mbstring' => 
     array (
-      'replaced' => 
+      'pretty_version' => 'v1.20.0',
+      'version' => '1.20.0.0',
+      'aliases' => 
       array (
-        0 => '*',
       ),
+      'reference' => '39d483bdf39be819deabf04ec872eb0b2410b531',
     ),
     'symfony/polyfill-php72' => 
     array (
@@ -539,12 +541,12 @@
     ),
     'tecnickcom/tcpdf' => 
     array (
-      'pretty_version' => '6.3.5',
-      'version' => '6.3.5.0',
+      'pretty_version' => '6.4.1',
+      'version' => '6.4.1.0',
       'aliases' => 
       array (
       ),
-      'reference' => '19a535eaa7fb1c1cac499109deeb1a7a201b4549',
+      'reference' => '5ba838befdb37ef06a16d9f716f35eb03cb1b329',
     ),
     'true/punycode' => 
     array (

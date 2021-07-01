@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -855,8 +855,9 @@ class Auth extends CommonGLPI {
                         if (!empty($login_auth)) {
                            $search_params['auths_id'] = $this->user->fields["auths_id"];
                         }
-                        $this->user->getFromDBByCrit($search_params);
-                        $user_deleted_ldap = true;
+                        if ($this->user->getFromDBByCrit($search_params)) {
+                           $user_deleted_ldap = true;
+                        };
                      }
                   }
                }
@@ -919,6 +920,9 @@ class Auth extends CommonGLPI {
                // Then ensure addslashes
                $input = Toolbox::addslashes_deep($input);
                unset ($this->user->fields);
+               if ($authtype == self::EXTERNAL && !isset($input["authtype"])) {
+                  $input["authtype"] = $authtype;
+               }
                $this->user->add($input);
             } else {
                // Auto add not enable so auth failed
@@ -1502,7 +1506,7 @@ class Auth extends CommonGLPI {
             echo "</p>";
          }
          echo "<p>" .__('Impossible to use CAS as external source of connection')."</p>";
-         echo "<p><strong>".GLPINetwork::getErrorMessage()."</strong></p>";
+         echo "<p><strong>".GLPINetwork::getSupportPromoteMessage()."</strong></p>";
 
          echo "</td></tr>\n";
       }

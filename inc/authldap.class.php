@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -452,7 +452,7 @@ class AuthLDAP extends CommonDBTM {
          echo "<p>".__('Impossible to use LDAP as external source of connection')."</p>".
               "</td></tr></table>";
 
-         echo "<p><strong>".GLPINetwork::getErrorMessage()."</strong></p>";
+         echo "<p><strong>".GLPINetwork::getSupportPromoteMessage()."</strong></p>";
          echo "</div>";
 
       }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -92,6 +92,8 @@ abstract class AbstractConfigureCommand extends AbstractCommand implements Force
     * @var integer
     */
    const ERROR_DB_CONFIG_FILE_NOT_SAVED = 4;
+
+   protected $requires_db_up_to_date = false;
 
    protected function configure() {
 

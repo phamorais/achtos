@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -90,7 +90,7 @@ class NotificationTargetCrontask extends NotificationTarget {
       }
 
       $this->addTagToList(['tag'     => 'crontasks',
-                                'label'   => __('Device list'),
+                                'label'   => __('Automatic actions list'),
                                 'value'   => false,
                                 'foreach' => true]);
 

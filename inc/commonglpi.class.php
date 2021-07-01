@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -841,7 +841,7 @@ class CommonGLPI {
          if (isset($cleaned_options['stock_image'])) {
             unset($cleaned_options['stock_image']);
          }
-         if ($this->getType() == 'Ticket') {
+         if ($this instanceof CommonITILObject && $this->isNewItem()) {
             $this->input = $cleaned_options;
             $this->saveInput();
             // $extraparamhtml can be tool long in case of ticket with content

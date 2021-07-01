@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -1147,7 +1147,7 @@ abstract class CommonITILTask extends CommonDBTM implements CalDAVCompatibleItem
                      $interv[$key]["end"] = $data["end"];
                   }
 
-                  $interv[$key]["name"]     = $parentitem->fields["name"];
+                  $interv[$key]["name"]     = Html::entity_decode_deep($parentitem->fields["name"]);
                   $interv[$key]["content"]  = Html::resume_text($item->fields["content"],
                                                                 $CFG_GLPI["cut"]);
                   $interv[$key]["status"]   = $parentitem->fields["status"];
@@ -1829,7 +1829,8 @@ abstract class CommonITILTask extends CommonDBTM implements CalDAVCompatibleItem
          if (isset($_SESSION['glpigroups']) && count($_SESSION['glpigroups'])) {
             $prep_req['WHERE'][self::getTable() . '.groups_id_tech'] = $_SESSION['glpigroups'];
          } else {
-            return false;
+            // Return empty iterator result
+            $prep_req['WHERE'][] = 0;
          }
       } else {
          $prep_req['WHERE'][self::getTable() . '.users_id_tech'] = $_SESSION['glpiID'];

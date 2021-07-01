@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -637,7 +637,7 @@ abstract class CommonDBRelation extends CommonDBConnexity {
 
          } else {
             // No entity link : set default values
-            $input['entities_id']  = 0;
+            $input['entities_id']  = Session::getActiveEntity();
             $input['is_recursive'] = 0;
          }
       }
@@ -1539,7 +1539,7 @@ abstract class CommonDBRelation extends CommonDBConnexity {
          $noent = true;
       }
 
-      $inverse = $item->getType() == static::$itemtype_1;
+      $inverse = $item->getType() == static::$itemtype_1 || static::$itemtype_1 === 'itemtype';
 
       $link_type  = static::$itemtype_1;
       $link_id    = static::$items_id_1;

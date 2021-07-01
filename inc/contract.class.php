@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -539,7 +539,8 @@ class Contract extends CommonDBTM {
          'computation'        =>
             '(SUM(' . $DB->quoteName('TABLE.cost') . ') / COUNT(' .
             $DB->quoteName('TABLE.id') . ')) * COUNT(DISTINCT ' .
-            $DB->quoteName('TABLE.id') . ')'
+            $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       $tab[] = [
@@ -943,7 +944,8 @@ class Contract extends CommonDBTM {
          'computation'        =>
             '(SUM(' . $DB->quoteName('TABLE.cost') . ') / COUNT(' .
             $DB->quoteName('TABLE.id') . ')) * COUNT(DISTINCT ' .
-            $DB->quoteName('TABLE.id') . ')'
+            $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       $tab[] = [

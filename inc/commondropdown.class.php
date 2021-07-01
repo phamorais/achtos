@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -455,6 +455,24 @@ abstract class CommonDropdown extends CommonDBTM {
                   'toadd'           => $toadd
                ]);
                break;
+
+            case 'itemtypename':
+               $options = [
+                  'value'  => $this->fields[$field['name']]
+               ];
+
+               if (isset($field['itemtype_list'])) {
+                  $options['types'] = $CFG_GLPI[$field['itemtype_list']];
+               }
+
+               if (isset($options['types'])) {
+                  Dropdown::showItemTypes(
+                     $field['name'],
+                     $options['types'],
+                     $options
+                  );
+               }
+               return false;
 
             default:
                $this->displaySpecificTypeField($ID, $field);

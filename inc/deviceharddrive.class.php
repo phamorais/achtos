@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -244,7 +244,8 @@ class DeviceHardDrive extends CommonDevice {
          'computation'        =>
             '(SUM(' . $DB->quoteName('TABLE.capacity') . ') / COUNT(' .
             $DB->quoteName('TABLE.id') . '))
-            * COUNT(DISTINCT ' . $DB->quoteName('TABLE.id') . ')'
+            * COUNT(DISTINCT ' . $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       return $tab;

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -250,7 +250,7 @@ class InstallCommand extends AbstractConfigureCommand {
           FROM information_schema.tables
           WHERE table_schema = '{$db_name}'
              AND table_type = 'BASE TABLE'
-             AND table_name LIKE 'glpi_%'"
+             AND table_name LIKE 'glpi\_%'"
       );
       if (!$tables_result) {
          throw new RuntimeException('Unable to check GLPI tables existence.');

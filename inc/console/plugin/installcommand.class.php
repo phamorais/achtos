@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -117,12 +117,13 @@ class InstallCommand extends AbstractPluginCommand {
             OutputInterface::VERBOSITY_NORMAL
          );
 
+         $plugin = new Plugin();
+         $plugin->checkPluginState($directory); // Be sure that plugin informations are up to date in DB
+
          if (!$this->canRunInstallMethod($directory, $force)) {
             continue;
          }
 
-         $plugin = new Plugin();
-         $plugin->checkPluginState($directory); // Be sure that plugin informations are up to date in DB
          if (!$plugin->getFromDBByCrit(['directory' => $directory])) {
             $this->output->writeln(
                '<error>' . sprintf(__('Unable to load plugin "%s" informations.'), $directory) . '</error>',

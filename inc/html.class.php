@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -57,6 +57,15 @@ class Html {
    static function clean($value, $striptags = true, $keep_bad = 2) {
       $value = Html::entity_decode_deep($value);
 
+      // Change <email@domain> to email@domain so it is not removed by htmLawed
+      // Search for strings that is an email surrounded by `<` and `>` but that cannot be an HTML tag:
+      // - absence of quotes indicate that values is not part of an HTML attribute,
+      // - absence of > ensure that ending `>` has not been reached.
+      $regex = "/(<[^\"'>]+?@[^>\"']+?>)/";
+      $value = preg_replace_callback($regex, function($matches) {
+         return substr($matches[1], 1, (strlen($matches[1]) - 2));
+      }, $value);
+
       // Clean MS office tags
       $value = str_replace(["<![if !supportLists]>", "<![endif]>"], '', $value);
 
@@ -82,18 +91,13 @@ class Html {
       // Neutralize not well formatted html tags
       $value = preg_replace("/(<)([^>]*<)/", "&lt;$2", $value);
 
-      $value = htmLawed(
-         $value,
-         [
-            'elements'         => ($striptags) ? 'none' : '',
-            'deny_attribute'   => 'on*',
-            'keep_bad'         => $keep_bad, // 1: neutralize tag and content, 2 : remove tag and neutralize content
-            'comment'          => 1, // 1: remove
-            'cdata'            => 1, // 1: remove
-            'direct_list_nest' => 1, // 1: Allow usage of ul/ol tags nested in other ul/ol tags
-            'schemes'          => '*: aim, app, feed, file, ftp, gopher, http, https, irc, mailto, news, nntp, sftp, ssh, tel, telnet'
-         ]
-      );
+      $config = Toolbox::getHtmLawedSafeConfig();
+      $config['keep_bad'] = $keep_bad; // 1: neutralize tag and content, 2 : remove tag and neutralize content
+      if ($striptags) {
+         $config['elements'] = 'none';
+      }
+
+      $value = htmLawed($value, $config);
 
       // Special case : remove the 'denied:' for base64 img in case the base64 have characters
       // combinaison introduce false positive
@@ -2511,7 +2515,12 @@ JAVASCRIPT;
       if (!isset($options['specific_tags']['data-glpicore-ma-tags'])) {
          $options['specific_tags']['data-glpicore-ma-tags'] = 'common';
       }
+
+      // encode quotes and brackets to prevent maformed name attribute
+      $id = htmlspecialchars($id, ENT_QUOTES);
+      $id = str_replace(['[', ']'], ['&amp;#91;', '&amp;#93;'], $id);
       $options['name']          = "item[$itemtype][".$id."]";
+
       $options['zero_on_empty'] = false;
 
       return self::getCheckbox($options);
@@ -2856,6 +2865,7 @@ HTML;
          ? json_encode($p['value'])
          : "'{$p['value']}'";
 
+      $locale = Locale::parseLocale($_SESSION['glpilanguage']);
       $js = <<<JS
       $(function() {
          $("#showdate{$p['rand']}").flatpickr({
@@ -2865,7 +2875,7 @@ HTML;
             dateFormat: 'Y-m-d',
             wrap: true, // permits to have controls in addition to input (like clear or open date buttons
             weekNumbers: true,
-            locale: "{$CFG_GLPI['languages'][$_SESSION['glpilanguage']][3]}",
+            locale: getFlatPickerLocale("{$locale['language']}", "{$locale['region']}"),
             {$min_attr}
             {$max_attr}
             {$multiple_attr}
@@ -3035,6 +3045,7 @@ HTML;
          ? "maxDate: '{$p['max']}',"
          : "";
 
+      $locale = Locale::parseLocale($_SESSION['glpilanguage']);
       $js = <<<JS
       $(function() {
          $("#showdate{$p['rand']}").flatpickr({
@@ -3045,7 +3056,7 @@ HTML;
             enableTime: true,
             enableSeconds: true,
             weekNumbers: true,
-            locale: "{$CFG_GLPI['languages'][$_SESSION['glpilanguage']][3]}",
+            locale: getFlatPickerLocale("{$locale['language']}", "{$locale['region']}"),
             minuteIncrement: "{$p['timestep']}",
             {$min_attr}
             {$max_attr}
@@ -3155,7 +3166,7 @@ JS;
             $clear
          </div>
 HTML;
-
+      $locale = Locale::parseLocale($_SESSION['glpilanguage']);
       $js = <<<JS
       $(function() {
          $("#showtime{$p['rand']}").flatpickr({
@@ -3164,7 +3175,7 @@ HTML;
             enableTime: true,
             noCalendar: true, // only time picker
             enableSeconds: true,
-            locale: "{$CFG_GLPI['languages'][$_SESSION['glpilanguage']][3]}",
+            locale: getFlatPickerLocale("{$locale['language']}", "{$locale['region']}"),
             minuteIncrement: "{$p['timestep']}",
             onChange: function(selectedDates, dateStr, instance) {
                {$p['on_change']}
@@ -3868,7 +3879,7 @@ JS;
          // init editor
          tinyMCE.init({
             language_url: '$language_url',
-            invalid_elements: 'form,iframe,script,@[onclick|ondblclick|'
+            invalid_elements: 'form,object,embed,iframe,script,@[onclick|ondblclick|'
                + 'onmousedown|onmouseup|onmouseover|onmousemove|onmouseout|onkeypress|'
                + 'onkeydown|onkeyup]',
             browser_spellcheck: true,
@@ -3883,6 +3894,7 @@ JS;
             skin_url: '".$CFG_GLPI['root_doc']."/css/tiny_mce/skins/light',
             content_css: '$darker_css,".$CFG_GLPI['root_doc']."/css/tiny_mce_custom.css',
             cache_suffix: '?v=".GLPI_VERSION."',
+            min_height: '150px',
             setup: function(editor) {
                if ($('#$name').attr('required') == 'required') {
                   $('#$name').closest('form').find('input[type=submit]').click(function() {
@@ -4760,14 +4772,11 @@ JS;
    static function jsAjaxDropdown($name, $field_id, $url, $params = []) {
       global $CFG_GLPI;
 
-      if (!isset($params['value'])) {
+      if (!array_key_exists('value', $params)) {
          $value = 0;
-      } else {
-         $value = $params['value'];
-      }
-      if (!isset($params['value'])) {
          $valuename = Dropdown::EMPTY_VALUE;
       } else {
+         $value = $params['value'];
          $valuename = $params['valuename'];
       }
       $on_change = '';
@@ -4813,9 +4822,7 @@ JS;
          $values = [];
 
          // simple select (multiple = no)
-         if ((isset($params['display_emptychoice']) && $params['display_emptychoice'])
-             || isset($params['toadd'][$value])
-             || $value > 0) {
+         if ($value !== null) {
             $values = ["$value" => $valuename];
          }
       }
@@ -5257,7 +5264,7 @@ JAVASCRIPT;
                $key == $selected
                || is_array($selected) && in_array($key, $selected))
             ) ? ' selected="selected"' : '',
-            $value
+            Html::entities_deep($value)
          );
       }
       $select .= '</select>';
@@ -5660,7 +5667,9 @@ JAVASCRIPT;
          $display .= "<input id='fileupload{$p['rand']}' type='file' name='".$p['name']."[]'
                          data-url='".$CFG_GLPI["root_doc"]."/ajax/fileupload.php'
                          data-form-data='{\"name\": \"".$p['name']."\",
-                                          \"showfilesize\": \"".$p['showfilesize']."\"}'".($p['multiple']?" multiple='multiple'":"").">";
+                                          \"showfilesize\": \"".$p['showfilesize']."\"}'"
+                         .($p['multiple']?" multiple='multiple'":"")
+                         .($p['onlyimages']?" accept='.gif,.png,.jpg,.jpeg'":"").">";
          $display .= "<div id='progress{$p['rand']}' style='display:none'>".
                  "<div class='uploadbar' style='width: 0%;'></div></div>";
          $display .= "</div>";
@@ -5677,7 +5686,7 @@ JAVASCRIPT;
                               ? "$('#{$p['dropZone']}')"
                               : "false").",
                acceptFileTypes: ".($p['onlyimages']
-                                    ? "'/(\.|\/)(gif|jpe?g|png)$/i'"
+                                    ? "/(\.|\/)(gif|jpe?g|png)$/i"
                                     : "undefined").",
                progressall: function(event, data) {
                   var progress = parseInt(data.loaded / data.total * 100, 10);

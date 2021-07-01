@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -63,6 +63,8 @@ class UpdateCommand extends AbstractCommand implements ForceNoPluginsOptionComma
     * @var integer
     */
    const ERROR_MISSING_SECURITY_KEY_FILE = 2;
+
+   protected $requires_db_up_to_date = false;
 
    protected function configure() {
       parent::configure();
@@ -187,8 +189,8 @@ class UpdateCommand extends AbstractCommand implements ForceNoPluginsOptionComma
       } else if ($force) {
          // Replay last update script even if there is no schema change.
          // It can be used in dev environment when update script has been updated/fixed.
-         include_once(GLPI_ROOT . '/install/update_952_953.php');
-         update952to953();
+         include_once(GLPI_ROOT . '/install/update_954_955.php');
+         update954to955();
 
          $output->writeln('<info>' . __('Last migration replayed.') . '</info>');
       }

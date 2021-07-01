@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -1473,12 +1473,11 @@ HTML;
     */
    function restoreLastDashboard():string {
       global $CFG_GLPI;
-
       $new_key = "";
-      $target = $_REQUEST['_target'] ?? $_SERVER['REQUEST_URI'] ?? "";
+      $target = Toolbox::cleanTarget($_REQUEST['_target'] ?? $_SERVER['REQUEST_URI'] ?? "");
       if (isset($_SESSION['last_dashboards']) && strlen($target) > 0) {
-         $target = str_replace($CFG_GLPI['root_doc'], '', $target);
 
+         $target = preg_replace('/^' . preg_quote($CFG_GLPI['root_doc'], '/') . '/', '', $target);
          if (!isset($_SESSION['last_dashboards'][$target])) {
             return "";
          }

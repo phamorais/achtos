@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -563,7 +563,6 @@ class Software extends CommonDBTM {
          'forcegroupby'       => true,
          'usehaving'          => true,
          'datatype'           => 'count',
-         'nometa'             => true,
          'massiveaction'      => false,
          'joinparams'         => [
             'jointype'   => 'child',
@@ -581,6 +580,25 @@ class Software extends CommonDBTM {
          $newtab['joinparams']['condition'] .= getEntitiesRestrictRequest(' AND', 'NEWTABLE');
       }
       $tab[] = $newtab;
+
+      $tab[] = [
+         'id'                 => '73',
+         'table'              => 'glpi_items_softwareversions',
+         'field'              => 'date_install',
+         'name'               => __('Installation date'),
+         'datatype'           => 'date',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'   => 'child',
+            'beforejoin' => [
+               'table'      => 'glpi_softwareversions',
+               'joinparams' => ['jointype' => 'child'],
+            ],
+            'condition'  => "AND NEWTABLE.`is_deleted_item` = 0
+                             AND NEWTABLE.`is_deleted` = 0
+                             AND NEWTABLE.`is_template_item` = 0",
+         ]
+      ];
 
       $tab = array_merge($tab, SoftwareLicense::rawSearchOptionsToAdd());
 
@@ -619,7 +637,7 @@ class Software extends CommonDBTM {
                   'jointype'           => 'child'
                ]
             ]
-         ]
+         ],
       ];
 
       $tab[] = [
@@ -649,7 +667,7 @@ class Software extends CommonDBTM {
                   'jointype'           => 'child'
                ]
             ]
-         ]
+         ],
       ];
 
       // add objectlock search options
@@ -1051,7 +1069,7 @@ class Software extends CommonDBTM {
 
             if ($found) {
                // Installation has be moved, delete the source version
-               $DB->delete(
+               $result = $DB->delete(
                   'glpi_softwareversions', [
                      'id'  => $from['id']
                   ]

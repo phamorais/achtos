@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -363,10 +363,8 @@ abstract class CommonITILValidation  extends CommonDBChild {
             NotificationEvent::raiseEvent('validation_answer', $item, $options);
          }
 
-          //Set global validation to accepted to define one
-         if (($item->fields['global_validation'] == self::WAITING)
-             && in_array("status", $this->updates)) {
-
+         //if status is updated, update global approval status
+         if (in_array("status", $this->updates)) {
             $input = [
                'id'                => $this->fields[static::$items_id],
                'global_validation' => self::computeValidationStatus($item),

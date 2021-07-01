@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -218,7 +218,8 @@ abstract class CommonITILCost extends CommonDBChild {
             ' + ' . $DB->quoteName('TABLE.cost_fixed') . ' + ' .
             $DB->quoteName('TABLE.cost_material') . ') / COUNT(' .
             $DB->quoteName('TABLE.id') . ')) * COUNT(DISTINCT ' .
-            $DB->quoteName('TABLE.id') . ')'
+            $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       $tab[] = [
@@ -237,7 +238,8 @@ abstract class CommonITILCost extends CommonDBChild {
             '(SUM(' . $DB->quoteName('TABLE.actiontime') . ' * ' .
             $DB->quoteName('TABLE.cost_time') . '/' . HOUR_TIMESTAMP .
             ') / COUNT(' . $DB->quoteName('TABLE.id') . ')) * COUNT(DISTINCT ' .
-            $DB->quoteName('TABLE.id') . ')'
+            $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       $tab[] = [
@@ -269,7 +271,8 @@ abstract class CommonITILCost extends CommonDBChild {
          'computation'        =>
             '(SUM(' . $DB->quoteName('TABLE.cost_fixed') . ') / COUNT(' .
             $DB->quoteName('TABLE.id') . '))
-            * COUNT(DISTINCT ' . $DB->quoteName('TABLE.id') . ')'
+            * COUNT(DISTINCT ' . $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       $tab[] = [
@@ -287,7 +290,8 @@ abstract class CommonITILCost extends CommonDBChild {
          'computation'        =>
             '(SUM(' . $DB->quoteName('TABLE.cost_material') . ') / COUNT(' .
             $DB->quoteName('TABLE.id') . '))
-            * COUNT(DISTINCT ' . $DB->quoteName('TABLE.id') . ')'
+            * COUNT(DISTINCT ' . $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       return $tab;

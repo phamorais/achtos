@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -39,6 +39,11 @@ define('GLPI_ROOT', __DIR__);
 define('DO_NOT_CHECK_HTTP_REFERER', 1);
 
 include_once (GLPI_ROOT . "/inc/based_config.php");
+
+// Init loggers
+$GLPI = new GLPI();
+$GLPI->initLogger();
+$GLPI->initErrorHandler();
 
 //init cache
 $GLPI_CACHE = Config::getCache('cache_db');

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -482,6 +482,14 @@ class Update extends CommonGLPI {
          case "9.5.2":
             include_once "{$updir}update_952_953.php";
             update952to953();
+
+         case "9.5.3":
+            include_once "{$updir}update_953_954.php";
+            update953to954();
+
+         case "9.5.4":
+            include_once "{$updir}update_954_955.php";
+            update954to955();
             break;
 
          case GLPI_VERSION:

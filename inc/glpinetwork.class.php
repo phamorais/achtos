@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -34,9 +34,9 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
-class GLPINetwork {
+class GLPINetwork extends CommonGLPI {
 
-   public function getTabNameForItem() {
+   public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
       return 'GLPI Network';
    }
 
@@ -258,14 +258,14 @@ class GLPINetwork {
          "<a href='".GLPI_NETWORK_SERVICES."' target='_blank'>".GLPI_NETWORK_SERVICES."</a>"));
    }
 
-   public static function getErrorMessage() {
+   public static function getSupportPromoteMessage() {
       return nl2br(sprintf(__("Having troubles setting up an advanced GLPI module?\n".
          "We can help you solve them. Sign up for support on %s."),
          "<a href='".GLPI_NETWORK_SERVICES."' target='_blank'>".GLPI_NETWORK_SERVICES."</a>"));
    }
 
    public static function addErrorMessageAfterRedirect() {
-      Session::addMessageAfterRedirect(self::getErrorMessage(), false, ERROR);
+      Session::addMessageAfterRedirect(self::getSupportPromoteMessage(), false, ERROR);
    }
 
    /**

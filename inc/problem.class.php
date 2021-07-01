@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -248,6 +248,8 @@ class Problem extends CommonITILObject {
 
    function post_updateItem($history = 1) {
       global $CFG_GLPI;
+
+      parent::post_updateItem($history);
 
       $donotif = count($this->updates);
 
@@ -515,6 +517,151 @@ class Problem extends CommonITILObject {
       return $tab;
    }
 
+
+   static function rawSearchOptionsToAdd() {
+
+      $tab = [];
+
+      $tab[] = [
+         'id'                 => 'problem',
+         'name'               => __('Problems')
+      ];
+
+      $tab[] = [
+         'id'                 => '200',
+         'table'              => 'glpi_problems_tickets',
+         'field'              => 'id',
+         'name'               => _x('quantity', 'Number of problems'),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'count',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '201',
+         'table'              => Problem::getTable(),
+         'field'              => 'name',
+         'name'               => Problem::getTypeName(1),
+         'datatype'           => 'dropdown',
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => Problem_Ticket::getTable(),
+               'joinparams'         => [
+                  'jointype'           => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                  => '202',
+         'table'               => Problem::getTable(),
+         'field'               => 'status',
+         'name'                => __('Status'),
+         'datatype'            => 'specific',
+         'searchtype'          => 'equals',
+         'searchequalsonfield' => true,
+         'massiveaction'       => false,
+         'forcegroupby'        => true,
+         'joinparams'          => [
+            'beforejoin'          => [
+               'table'               => Problem_Ticket::getTable(),
+               'joinparams'          => [
+                  'jointype'            => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '203',
+         'table'              => Problem::getTable(),
+         'field'              => 'solvedate',
+         'name'               => __('Resolution date'),
+         'datatype'           => 'datetime',
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => Problem_Ticket::getTable(),
+               'joinparams'         => [
+                  'jointype'           => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '204',
+         'table'              => Problem::getTable(),
+         'field'              => 'date',
+         'name'               => __('Opening date'),
+         'datatype'           => 'datetime',
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => Problem_Ticket::getTable(),
+               'joinparams'         => [
+                  'jointype'           => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      return $tab;
+
+   }
+
+      /**
+    * @since 0.84
+    *
+    * @param $field
+    * @param $values
+    * @param $options   array
+   **/
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
+
+      if (!is_array($values)) {
+         $values = [$field => $values];
+      }
+
+      switch ($field) {
+         case 'status' :
+            return Problem::getStatus($values[$field]);
+      }
+      return parent::getSpecificValueToDisplay($field, $values, $options);
+   }
+
+
+   /**
+    * @since 0.84
+    *
+    * @param $field
+    * @param $name            (default '')
+    * @param $values          (default '')
+    * @param $options   array
+    *
+    * @return string
+   **/
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
+
+      if (!is_array($values)) {
+         $values = [$field => $values];
+      }
+      $options['display'] = false;
+
+      switch ($field) {
+         case 'status':
+            return Problem::dropdownStatus(['name' => $name,
+                                             'value' => $values[$field],
+                                             'display' => false]);
+      }
+      return parent::getSpecificValueToSelect($field, $name, $values, $options);
+   }
 
    /**
     * get the problem status list
@@ -1045,11 +1192,21 @@ class Problem extends CommonITILObject {
 
       $default_values = self::getDefaultValues();
 
+      // Restore saved value or override with page parameter
+      $saved = $this->restoreInput();
+
+      // Restore saved values and override $this->fields
+      $this->restoreSavedValues($saved);
+
       // Set default options
       if (!$ID) {
          foreach ($default_values as $key => $val) {
             if (!isset($options[$key])) {
-               $options[$key] = $val;
+               if (isset($saved[$key])) {
+                  $options[$key] = $saved[$key];
+               } else {
+                  $options[$key] = $val;
+               }
             }
          }
 
@@ -1074,7 +1231,8 @@ class Problem extends CommonITILObject {
 
       $this->initForm($ID, $options);
 
-      $canupdate = !$ID || $this->canUpdateItem();
+      $canupdate = !$ID || (Session::getCurrentInterface() == "central" && $this->canUpdateItem());
+
       $showuserlink = 0;
       if (User::canView()) {
          $showuserlink = 1;
@@ -1109,9 +1267,6 @@ class Problem extends CommonITILObject {
       } else {
          $options['_predefined_fields'] = [];
       }
-
-      // Restore saved value or override with page parameter
-      $saved = $this->restoreInput();
 
       // Store predefined fields to be able not to take into account on change template
       // Only manage predefined values on ticket creation
@@ -1457,20 +1612,17 @@ class Problem extends CommonITILObject {
       printf(__('%1$s%2$s'), __('Description'), $tt->getMandatoryMark('content'));
       echo $tt->getEndHiddenFieldText('content')."</th>";
       echo "<td colspan='3'>";
-      $rand = mt_rand();
 
       echo $tt->getBeginHiddenFieldValue('content');
+      $rand       = mt_rand();
+      $rand_text  = mt_rand();
+      $rows       = 10;
+      $content_id = "content$rand";
 
       $content = $this->fields['content'];
       if (!isset($options['template_preview'])) {
          $content = Html::cleanPostForTextArea($content);
       }
-
-      $content_id = "content$rand";
-      $rows       = 10;
-      $canupdate     = !$ID
-                        || (Session::getCurrentInterface() == "central"
-                            && $this->canUpdateItem());
 
       $content = Html::setRichTextContent(
          $content_id,
@@ -1479,11 +1631,29 @@ class Problem extends CommonITILObject {
          !$canupdate
       );
 
-      echo "<textarea id='$content_id' name='content' style='width:100%' rows='$rows'".
-            ($tt->isMandatoryField('content') ? " required='required'" : '') . ">" .
-            $content."</textarea></div>";
+      echo "<div id='content$rand_text'>";
+      if ($canupdate) {
+         $uploads = [];
+         if (isset($this->input['_content'])) {
+            $uploads['_content'] = $this->input['_content'];
+            $uploads['_tag_content'] = $this->input['_tag_content'];
+         }
+         Html::textarea([
+            'name'            => 'content',
+            'filecontainer'   => 'content_info',
+            'editor_id'       => $content_id,
+            'required'        => $tt->isMandatoryField('content'),
+            'rows'            => $rows,
+            'enable_richtext' => true,
+            'value'           => $content,
+            'uploads'         => $uploads,
+         ]);
+      } else {
+         echo Toolbox::getHtmlToDisplay($content);
+      }
+      echo "</div>";
+
       echo $tt->getEndHiddenFieldValue('content', $this);
-      echo "</td></tr>";
 
       $options['colspan'] = 2;
       if (!$options['template_preview']) {

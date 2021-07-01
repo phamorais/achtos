@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -192,15 +192,7 @@ class User extends CommonDBTM {
          Session::start();
          $_SESSION["glpiID"]                      = $this->fields['id'];
          $_SESSION["glpi_use_mode"]               = Session::NORMAL_MODE;
-         $_SESSION["glpiactive_entity"]           = $entities_id;
-         $_SESSION["glpiactive_entity_recursive"] = $is_recursive;
-         if ($is_recursive) {
-            $entities = getSonsOf("glpi_entities", $entities_id);
-         } else {
-            $entities = [$entities_id];
-         }
-         $_SESSION['glpiactiveentities']        = $entities;
-         $_SESSION['glpiactiveentities_string'] = "'".implode("', '", $entities)."'";
+         Session::loadEntity($entities_id, $is_recursive);
          $this->computePreferences();
          foreach ($CFG_GLPI['user_pref_field'] as $field) {
             if (isset($this->fields[$field])) {
@@ -679,6 +671,7 @@ class User extends CommonDBTM {
             $profile                   = Profile::getDefault();
             // Default right as dynamic. If dynamic rights are set it will disappear.
             $affectation['is_dynamic'] = 1;
+            $affectation['is_default_profile'] = 1;
          }
 
          if ($profile) {
@@ -1050,6 +1043,27 @@ class User extends CommonDBTM {
             unset($this->input["_ldap_rules"]);
 
             $return = true;
+         } else if (count($dynamic_profiles) == 1) {
+            $dynamic_profile = reset($dynamic_profiles);
+
+            // If no rule applied and only one dynamic profile found, check if
+            // it is the default profile
+            if ($dynamic_profile['is_default_profile'] == true) {
+               $default_profile = Profile::getDefault();
+
+               // Remove from to be deleted list
+               $dynamic_profiles = [];
+
+               // Update profile if need to match the current default profile
+               if ($dynamic_profile['profiles_id'] !== $default_profile) {
+                  $pu = new Profile_User();
+                  $dynamic_profile['profiles_id'] = $default_profile;
+                  $pu->add($dynamic_profile);
+                  $pu->delete([
+                     'id' => $dynamic_profile['id']
+                  ]);
+               }
+            }
          }
 
          // Delete old dynamic profiles
@@ -4012,9 +4026,12 @@ JAVASCRIPT;
          'on_change'           => $p['on_change'],
          'used'                => $p['used'],
          'inactive_deleted'    => $p['inactive_deleted'],
-         'entity_restrict'     => (is_array($p['entity']) ? json_encode(array_values($p['entity'])) : $p['entity']),
+         'entity_restrict'     => ($entity_restrict = (is_array($p['entity']) ? json_encode(array_values($p['entity'])) : $p['entity'])),
          'specific_tags'       => $p['specific_tags'],
-         '_idor_token'         => Session::getNewIDORToken(__CLASS__, ['right' => $p['right']]),
+         '_idor_token'         => Session::getNewIDORToken(__CLASS__, [
+            'right'           => $p['right'],
+            'entity_restrict' => $entity_restrict,
+         ]),
       ];
 
       $output   = Html::jsAjaxDropdown($p['name'], $field_id,
@@ -5626,10 +5643,16 @@ JAVASCRIPT;
       $group_ids = array_unique($this->input["_ldap_rules"]['groups_id']);
       foreach ($group_ids as $group_id) {
          $group_user = new Group_User();
-         $group_user->add([
+
+         $data = [
             'groups_id' => $group_id,
             'users_id'  => $this->getId()
-         ]);
+         ];
+
+         if (!$group_user->getFromDBByCrit($data)) {
+            $group_user->add($data);
+         }
+
       }
    }
 }

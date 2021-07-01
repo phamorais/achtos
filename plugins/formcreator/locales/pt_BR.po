@@ -573,7 +573,7 @@ msgstr "ver todos"
 
 #: inc/form.class.php:1082 inc/knowbase.class.php:89
 msgid "Please, describe your need here"
-msgstr "Por favor, descreva o que precisa aqui"
+msgstr "Pesquise pelo nome do serviço aqui"
 
 #: inc/form.class.php:1090
 #, php-format
@@ -757,7 +757,7 @@ msgstr "Habilitar captcha"
 
 #: inc/formanswer.class.php:62
 msgid "Waiting"
-msgstr "Aguardando"
+msgstr "Aguardando aprovação"
 
 #: inc/formanswer.class.php:63 inc/issue.class.php:620
 msgid "Refused"
@@ -1158,7 +1158,7 @@ msgstr "Item "
 
 #: inc/wizard.class.php:100 inc/wizard.class.php:101
 msgid "Seek assistance"
-msgstr "Procure suporte"
+msgstr "Serviços"
 
 #: inc/wizard.class.php:106 inc/wizard.class.php:107
 msgid "My requests for assistance"
@@ -1321,7 +1321,7 @@ msgstr "Documento anexado"
 #: inc/field/filefield.class.php:139
 #, php-format
 msgid "A required file is missing: %s"
-msgstr ""
+msgstr "Um arquivo obrigatório não foi anexado"
 
 #: inc/field/floatfield.class.php:159
 #, php-format

@@ -771,13 +771,13 @@ PluginFormcreatorConditionnableInterface
    public function showList() : void {
       echo '<div class="center" id="plugin_formcreator_wizard">';
 
-      echo '<div class="plugin_formcreator_marginRight plugin_formcreator_card">';
+      echo '<div class="plugin_formcreator_card">';
       $this->showWizard();
       echo '</div>';
 
-      echo '<div id="plugin_formcreator_lastForms">';
-      $this->showMyLastForms();
-      echo '</div>';
+      // echo '<div id="plugin_formcreator_lastForms">';
+      // $this->showMyLastForms();
+      // echo '</div>';
 
       echo '</div>';
    }

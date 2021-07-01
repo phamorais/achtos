@@ -4117,13 +4117,13 @@ msgstr "Aceitou"
 #: inc/dashboard/provider.class.php:885
 msgctxt "status"
 msgid "Processing (assigned)"
-msgstr "Processando (atribuído)"
+msgstr "Em atendimento"
 
 #: inc/problem.class.php:532 inc/ticket.class.php:3313
 #: inc/dashboard/provider.class.php:889
 msgctxt "status"
 msgid "Processing (planned)"
-msgstr "Processando (planejado)"
+msgstr "Atendimento (planejado)"
 
 #: inc/problem.class.php:533 inc/ticket.class.php:3314
 #: inc/dashboard/provider.class.php:893 inc/dashboard/provider.class.php:1231
@@ -11202,7 +11202,7 @@ msgstr "Chamados criados"
 
 #: inc/ticket.class.php:745
 msgid "Processing ticket"
-msgstr "Processando chamado"
+msgstr "Acompanhamentos"
 
 #: inc/ticket.class.php:791
 msgid "Satisfaction survey expired"
@@ -11299,7 +11299,7 @@ msgstr "Confirma a fusão? Os chamados vão ser apagados!"
 
 #: inc/ticket.class.php:2610
 msgid "Time to own + Progress"
-msgstr "Tempo para atendimento + Progresso"
+msgstr "Tempo para atendimento"
 
 #: inc/ticket.class.php:2620
 msgid "Time to own exceedeed"
@@ -11513,7 +11513,7 @@ msgstr "Chamados com status pendente"
 
 #: inc/ticket.class.php:5346 inc/ticket.class.php:5413
 msgid "Tickets to be processed"
-msgstr "Chamados a serem processados"
+msgstr "Chamados aguardando atendimento"
 
 #: inc/ticket.class.php:5362 inc/ticket.class.php:5520
 msgid "Your observed tickets"
@@ -11521,7 +11521,7 @@ msgstr "Seus chamados observados"
 
 #: inc/ticket.class.php:5379 inc/ticket.class.php:5571
 msgid "Your tickets in progress"
-msgstr "Seus chamados em progresso"
+msgstr "Chamados abertos por você"
 
 #: inc/ticket.class.php:5440
 msgid "Your tickets to validate"
@@ -18261,7 +18261,7 @@ msgstr "Período"
 
 #: inc/planning.class.php:2286
 msgid "Your planning"
-msgstr "Seu planejamento"
+msgstr "Minhas atividades planejadas"
 
 #: inc/planning.class.php:2376
 #, php-format
@@ -19578,11 +19578,11 @@ msgstr "Próxima (seta direita)"
 
 #: inc/html.class.php:5555
 msgid "Attach file by drag & drop or copy & paste in editor or "
-msgstr "Anexar arquivo por arrastar e soltar ou copiar e colar no editor"
+msgstr "Arraste o arquivo, ou "
 
 #: inc/html.class.php:5556
 msgid "selecting them"
-msgstr "Selecionar"
+msgstr "Clique aqui para selecionar"
 
 #: inc/html.class.php:5635
 msgid "File(s)"
@@ -21430,7 +21430,7 @@ msgstr "Ao menos muito alto"
 
 #: inc/commonitilobject.class.php:3335
 msgid "Time to resolve + Progress"
-msgstr "Tempo para solução + Progresso"
+msgstr "Tempo para solução"
 
 #: inc/commonitilobject.class.php:3345
 msgid "Time to resolve exceedeed"
@@ -22992,7 +22992,7 @@ msgstr "Padrão (do perfil do usuário)"
 
 #: index.php:164
 msgid "Remember me"
-msgstr "Lembrar de mim"
+msgstr "Salvar senha"
 
 #: index.php:194
 msgid "You must activate the JavaScript function of your browser"

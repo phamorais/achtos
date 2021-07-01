@@ -6942,6 +6942,13 @@ JAVASCRIPT;
            "<span class='sr-only'>" . __('Help') . "</span>";
       echo "</a></li>";
 
+      if ( Session::getCurrentInterface() != "helpdesk") {
+         echo "<li>";
+         echo "<a href='" . $CFG_GLPI["root_doc"] . "/plugins/atendeti' class='fa fa-clone' title='Visualizar o novo front'>";
+         echo "<span class='sr-only'>Visualizar o layout com o novo front.</span></a></li>";
+     }
+
+
       if (!GLPI_DEMO_MODE) {
          echo "<li id='language_link'><a href='".$CFG_GLPI["root_doc"].
                     "/front/preference.php?forcetab=User\$1' title=\"".

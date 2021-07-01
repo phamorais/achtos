@@ -811,20 +811,44 @@ PluginFormcreatorConditionnableInterface
       echo '<div id="plugin_formcreator_searchBar">';
       $this->showSearchBar();
       echo '</div>';
-      $sortSettings = PluginFormcreatorEntityConfig::getEnumSort();
-      echo '<div class="plugin_formcreator_sort">';
-      echo '<span class="radios">';
-      $sortOrder = PluginFormcreatorEntityconfig::getUsedConfig('sort_order', Session::getActiveEntity());
-      $selected = $sortOrder == PluginFormcreatorEntityconfig::CONFIG_SORT_POPULARITY ? 'checked="checked"' : '';
-      echo '<input type="radio" class="form-control" id="plugin_formcreator_mostPopular" name="sort" value="mostPopularSort" '.$selected.'/>';
-      echo '<label for="plugin_formcreator_mostPopular">'.$sortSettings[PluginFormcreatorEntityConfig::CONFIG_SORT_POPULARITY] .'</label>';
-      echo '</span>';
-      echo '<span class="radios">';
-      $selected = $sortOrder == PluginFormcreatorEntityconfig::CONFIG_SORT_ALPHABETICAL ? 'checked="checked"' : '';
-      echo '<input type="radio" class="form-control" id="plugin_formcreator_alphabetic" name="sort" value="alphabeticSort" '.$selected.'/>';
-      echo '<label for="plugin_formcreator_alphabetic">'.$sortSettings[PluginFormcreatorEntityConfig::CONFIG_SORT_ALPHABETICAL].'</label>';
-      echo '</span>';
-      echo '</div>';
+      // $sortSettings = PluginFormcreatorEntityConfig::getEnumSort();
+      // echo '<div class="plugin_formcreator_sort">';
+      // echo '<span class="radios">';
+      // $sortOrder = PluginFormcreatorEntityconfig::getUsedConfig('sort_order', Session::getActiveEntity());
+      // $selected = $sortOrder == PluginFormcreatorEntityconfig::CONFIG_SORT_POPULARITY ? 'checked="checked"' : '';
+      // echo '<input type="radio" class="form-control" id="plugin_formcreator_mostPopular" name="sort" value="mostPopularSort" '.$selected.'/>';
+      // echo '<label for="plugin_formcreator_mostPopular">'.$sortSettings[PluginFormcreatorEntityConfig::CONFIG_SORT_POPULARITY] .'</label>';
+      // echo '</span>';
+      // echo '<span class="radios">';
+      // $selected = $sortOrder == PluginFormcreatorEntityconfig::CONFIG_SORT_ALPHABETICAL ? 'checked="checked"' : '';
+      // echo '<input type="radio" class="form-control" id="plugin_formcreator_alphabetic" name="sort" value="alphabeticSort" '.$selected.'/>';
+      // echo '<label for="plugin_formcreator_alphabetic">'.$sortSettings[PluginFormcreatorEntityConfig::CONFIG_SORT_ALPHABETICAL].'</label>';
+      // echo '</span>';
+      // echo '</div>';
+      include_once('../../atendeti/inc/LastSearchForms.class.php');
+      
+      if ($UserID = $_SESSION['glpiID']) {   
+         
+       echo '<style>
+
+       #plugin_formcreator_searchBar {
+    position: relative;
+    margin: 20px 25px -18px 6px;
+    padding: 10px 0 45px 0;
+    box-sizing: border-box;
+}
+        
+         </style>';
+         echo '<div class="menuAcesso" style="border-style: groove;
+    padding: 20px;
+    border-width: 1px;
+    margin: 0px 24px 28px 7px;
+    border-radius: 9px;">';
+         $ids = (new LastSearchForms)->LastSearch($UserID);
+         $links = (new LastSearchForms)->ShowLinks($ids, false);
+         echo '</div>';
+      }
+
       echo '<div id="plugin_formcreator_wizard_forms">';
       echo '</div>';
       echo '</div>';

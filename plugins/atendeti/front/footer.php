@@ -1,60 +1,18 @@
 </div>
 </div>
 
-<!--CODE feedback-->
-<!-- <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous">
-</script>
-
-<link rel="stylesheet" type="text/css" href="../assets/css/happiness_feedback.css">
-<script src="../assets/js/happiness_feedback.js"></script>
-
-<script type="text/javascript">
-    //<![CDATA[
-    function sendURL() {
-        //Seleciona a url atual para salvar no campo hidden
-        var myUrl = window.location.href;
-        remoteframe = document.getElementById("feedback")
-        //Verifica se a mensagem está em branco
-        if (myUrl !== "") {
-            //autoriza o domínio do questionário a se conectar via iframe de forma segura
-            remoteframe.contentWindow.postMessage(myUrl, 'https://formsweb.poupex.com.br/index.php/875511');
-        } else {
-            alert("URL Vazia");
-        }
-    }
-</script>
-
-
-<div id="happiness-feedback" class="teal-theme">
-    <div id="chat-square">
-        <i>&nbsp;</i> Feedback
-    </div>
-
-    <div class="chat-box">
-        <div class="chat-box-header">
-            <span class="chat-box-toggle"><i>×</i></span>
-        </div>
-        <div class="chat-box-body">
-            <div class="chat-box-overlay">                
-                <iframe id="feedback" src="https://formsweb.poupex.com.br/index.php/875511" style="border:0px #ffffff none;" name="lime" scrolling="overflow-y" frameborder="1" marginheight="0px" marginwidth="0px" height="200px" width="320px" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-</div> -->
-<!--AND CODE feedback-->
-
 <br>
 <br>
 
 
-<footer id="footer" class="footer footer-default">
+<!-- <footer id="footer" class="footer footer-default">
     <div id="footer-container" >
         <div class="container">
         <img src="../assets/img/logo-poupex-rodape-branca.png" />
             
         </div>
     </div>
-</footer>
+</footer> -->
 
 
 <!--   Core JS Files   -->

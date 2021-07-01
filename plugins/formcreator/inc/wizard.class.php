@@ -87,7 +87,17 @@ class PluginFormcreatorWizard {
       self::showTicketSummary();
 
       echo '<div id="header_top">';
-      echo '<div id="c_logo"></div>';
+      //echo '<div id="c_logo"></div>';
+      /**
+       * POUPEX CODE
+       * 
+       *    código anterior
+       *    echo '<div id="c_logo"></div>';
+       * 
+       */
+      echo '<a href="'.$CFG_GLPI["root_doc"].'/plugins/atendeti/front/home.php"><div id="c_logo"></div></a>';
+      /** POUPEX CODE */
+
       echo '</div>';
 
       // Left vertical menu

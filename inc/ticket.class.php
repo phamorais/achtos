@@ -111,11 +111,25 @@ class Ticket extends CommonITILObject {
 
    static function getAdditionalMenuContent() {
 
+      $plugin = new Plugin();
+
+      if ($plugin->isActivated('formcreator')) {
+         if (method_exists('Plugin', 'getWebDir')) {
+            $url = '/' . Plugin::getWebDir('formcreator', false) . '/front/formlist.php';
+         } else {
+            $url = '/plugins/formcreator/front/formlist.php';
+         }
+      } else {
+         $url = static::getFormURL(false);
+      }
+
+
       if (static::canCreate()) {
          $menu = [
             'create_ticket' => [
                'title' => __('Create ticket'),
                'page'  => static::getFormURL(false),
+               'page'  => $url,
                'icon'  => 'fas fa-plus',
             ],
          ];

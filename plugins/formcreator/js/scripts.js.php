@@ -506,9 +506,13 @@ function buildTiles(list) {
             item.icon_color = '#999999';
          }
 
-         if (item.background_color == '') {
-            item.background_color = '#e7e7e7';
-         }
+         // if (item.background_color == '') {
+        //    item.icon_color = '#999999';s
+        // }
+
+
+         item.background_color = '#ffffff';
+
 
          if (item.type == 'form') {
             forms.push(

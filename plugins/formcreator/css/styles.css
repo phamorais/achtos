@@ -1021,22 +1021,28 @@ tr[data-itemtype="PluginFormcreatorCondition"] ~ tr[data-itemtype="PluginFormcre
 }
 
 .plugin_formcreator_formTile {
-   margin: 0 3px 6px 3px;
-   width: 300px;
+   margin: 0 3px 20px 15px;
+   border-radius: 11px!important;
+   width: 384px;
    display: inline-block;
    vertical-align: top;
    text-align: left;
    overflow: hidden;
    cursor: pointer;
+   box-shadow: 0 6px 10px rgba(0,0,0,.08), 0 0 6px rgba(0,0,0,.05);
+   transition: .3s transform cubic-bezier(.155,1.105,.295,1.12),.3s box-shadow,.3s -webkit-transform cubic-bezier(.155,1.105,.295,1.12);
    border-radius: 0;
    box-sizing: border-box;
-   animation-name: fadeInUp ;
+   animation-name: fadeInUp;
    animation-iteration-count: 1;
    animation-timing-function: ease-in;
    animation-duration: 0.3s;
 }
 .plugin_formcreator_formTile:hover {
-   background-color: #EEEEEE
+   background-color: #EEEEEE;
+   box-shadow: 0 10px 20px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+   transform: scale(1.05)
+
 }
 
 .plugin_formcreator_formTile.default_form {
@@ -1597,6 +1603,44 @@ span.fc_list_icon {
    cursor: pointer;
    color: #a0a0a0;
 }
+
+/**
+CODE poupex
+*/
+
+.card{
+   border-radius: 4px;
+   background: #fff;
+   box-shadow: 0 6px 10px rgba(0,0,0,.08), 0 0 6px rgba(0,0,0,.05);
+     transition: .3s transform cubic-bezier(.155,1.105,.295,1.12),.3s box-shadow,.3s -webkit-transform cubic-bezier(.155,1.105,.295,1.12);
+ padding: 14px 80px 18px 36px;
+ cursor: pointer;
+}
+
+.card:hover{
+    transform: scale(1.05);
+ box-shadow: 0 10px 20px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+}
+
+.card h3{
+ font-weight: 600;
+}
+
+.card img{
+ position: absolute;
+ top: 20px;
+ right: 15px;
+ max-height: 120px;
+}
+
+@media(max-width: 990px){
+ .card{
+   margin: 20px;
+ }
+} 
+
+/** code poupex */
+
 
 .plugin_formcreator_cancel_my_ticket {
    background: #fec95c;

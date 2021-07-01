@@ -877,10 +877,14 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
       $eol = "\r\n";
 
       if ($richText) {
-         $output .= '<h1>' . __('Form data', 'formcreator') . '</h1>';
+         //$output .= '<h1>' . __('Form data', 'formcreator') . '</h1>';
+         $output .= '';
+
       } else {
-         $output .= __('Form data', 'formcreator') . $eol;
-         $output .= '=================';
+         //$output .= __('Form data', 'formcreator') . $eol;
+         //$output .= '=================';
+         $output .= '';
+
          $output .= $eol . $eol;
       }
 

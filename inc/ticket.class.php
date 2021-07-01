@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -1546,6 +1546,16 @@ class Ticket extends CommonITILObject {
          return false;
       }
 
+      // Check a self-service user can create a ticket for another user.
+      // We condition the check with a bool flag set in front/tracking.injector.php (self-service ticket controller).
+      // This to avoid plugins having their process broken.
+      if (isset($input['check_delegatee'])
+          && $input['check_delegatee']
+          && !self::canDelegateeCreateTicket($input['_users_id_requester'], ($input['entities_id'] ?? -2))) {
+         Session::addMessageAfterRedirect(__("You cannot create a ticket for this user"));
+         return false;
+      }
+
       if (!isset($input["requesttypes_id"])) {
          $input["requesttypes_id"] = RequestType::getDefault('helpdesk');
       }
@@ -2401,6 +2411,52 @@ class Ticket extends CommonITILObject {
 
 
    /**
+    * Check current user can create a ticket for another given user
+    *
+    * @since 9.5.4
+    *
+    * @param int $requester_id the user for which we want to create the ticket
+    * @param int $entity_restrict check entity when search users
+    *            (keep null to check with current session entities)
+    *
+    * @return bool
+    */
+   public static function canDelegateeCreateTicket(int $requester_id, ?int $entity_restrict = null):bool {
+      // if the user is a technician, no need to check delegates
+      if (Session::getCurrentInterface() == "central") {
+         return true;
+      }
+
+      // if the connected user is the ticket requester, we can create
+      if ($requester_id == $_SESSION['glpiID']) {
+         return true;
+      }
+
+      if ($entity_restrict === null) {
+         $entity_restrict = $_SESSION["glpiactive_entity"] ?? 0;
+      }
+
+      // if user has no delegate groups, he can't create ticket for another user
+      $delegate_groups = User::getDelegateGroupsForUser($entity_restrict);
+      if (count($delegate_groups) == 0) {
+         return false;
+      }
+
+      // retrieve users to check if given requester is part of them
+      $users_delegatee_iterator = User::getSqlSearchResult(false, 'delegate', $entity_restrict);
+      foreach ($users_delegatee_iterator as $user_data) {
+         if ($user_data['id'] == $requester_id) {
+            // user found
+            return true;
+         }
+      }
+
+      // user not found
+      return false;
+   }
+
+
+   /**
     * Get default values to search engine to override
    **/
    static function getDefaultSearchRequest() {
@@ -2620,14 +2676,7 @@ class Ticket extends CommonITILObject {
          'name'               => __('Time to own exceedeed'),
          'datatype'           => 'bool',
          'massiveaction'      => false,
-         'computation'        => 'IF('.$DB->quoteName('TABLE.time_to_own').' IS NOT NULL
-                                            AND '.$DB->quoteName('TABLE.status').' <> '.self::WAITING.'
-                                            AND ('.$DB->quoteName('TABLE.takeintoaccount_delay_stat').'
-                                                        > TIME_TO_SEC(TIMEDIFF('.$DB->quoteName('TABLE.time_to_own').',
-                                                                               '.$DB->quoteName('TABLE.date').'))
-                                                 OR ('.$DB->quoteName('TABLE.takeintoaccount_delay_stat').' = 0
-                                                      AND '.$DB->quoteName('TABLE.time_to_own').' < NOW())),
-                                            1, 0)'
+         'computation'        => self::generateSLAOLAComputation('time_to_own')
       ];
 
       $tab[] = [
@@ -2658,12 +2707,7 @@ class Ticket extends CommonITILObject {
          'name'               => __('Internal time to resolve exceedeed'),
          'datatype'           => 'bool',
          'massiveaction'      => false,
-         'computation'        => 'IF('.$DB->quoteName('TABLE.internal_time_to_resolve').' IS NOT NULL
-                                            AND '.$DB->quoteName('TABLE.status').' <> 4
-                                            AND ('.$DB->quoteName('TABLE.solvedate').' > '.$DB->quoteName('TABLE.internal_time_to_resolve').'
-                                                 OR ('.$DB->quoteName('TABLE.solvedate').' IS NULL
-                                                      AND '.$DB->quoteName('TABLE.internal_time_to_resolve').' < NOW())),
-                                            1, 0)'
+         'computation'        => self::generateSLAOLAComputation('internal_time_to_resolve')
       ];
 
       $tab[] = [
@@ -2694,14 +2738,7 @@ class Ticket extends CommonITILObject {
          'name'               => __('Internal time to own exceedeed'),
          'datatype'           => 'bool',
          'massiveaction'      => false,
-         'computation'        => 'IF('.$DB->quoteName('TABLE.internal_time_to_own').' IS NOT NULL
-                                            AND '.$DB->quoteName('TABLE.status').' <> '.self::WAITING.'
-                                            AND ('.$DB->quoteName('TABLE.takeintoaccount_delay_stat').'
-                                                        > TIME_TO_SEC(TIMEDIFF('.$DB->quoteName('TABLE.internal_time_to_own').',
-                                                                               '.$DB->quoteName('TABLE.date').'))
-                                                 OR ('.$DB->quoteName('TABLE.takeintoaccount_delay_stat').' = 0
-                                                      AND '.$DB->quoteName('TABLE.internal_time_to_own').' < NOW())),
-                                            1, 0)'
+         'computation'        => self::generateSLAOLAComputation('internal_time_to_own')
       ];
 
       $max_date = '99999999';
@@ -3158,24 +3195,7 @@ class Ticket extends CommonITILObject {
       }
 
       if (Session::haveRight('problem', READ)) {
-         $tab[] = [
-            'id'                 => 'problem',
-            'name'               => __('Problems')
-         ];
-
-         $tab[] = [
-            'id'                 => '141',
-            'table'              => 'glpi_problems_tickets',
-            'field'              => 'id',
-            'name'               => _x('quantity', 'Number of problems'),
-            'forcegroupby'       => true,
-            'usehaving'          => true,
-            'datatype'           => 'count',
-            'massiveaction'      => false,
-            'joinparams'         => [
-               'jointype'           => 'child'
-            ]
-         ];
+         $tab = array_merge($tab, Problem::rawSearchOptionsToAdd());
       }
 
       // Filter search fields for helpdesk
@@ -4121,6 +4141,11 @@ class Ticket extends CommonITILObject {
    function showForm($ID, $options = []) {
       global $CFG_GLPI;
 
+      // show full create form only to tech users
+      if ($ID <= 0 && Session::getCurrentInterface() !== "central") {
+         return;
+      }
+
       if (isset($options['_add_fromitem']) && isset($options['itemtype'])) {
          $item = new $options['itemtype'];
          $item->getFromDB($options['items_id'][$options['itemtype']][0]);
@@ -4131,6 +4156,9 @@ class Ticket extends CommonITILObject {
 
       // Restore saved value or override with page parameter
       $saved = $this->restoreInput();
+
+      // Restore saved values and override $this->fields
+      $this->restoreSavedValues($saved);
 
       foreach ($default_values as $name => $value) {
          if (!isset($options[$name])) {
@@ -4851,10 +4879,10 @@ class Ticket extends CommonITILObject {
             'value'           => $content,
             'uploads'         => $uploads,
          ]);
-         echo "</div>";
       } else {
          echo Toolbox::getHtmlToDisplay($content);
       }
+      echo "</div>";
       echo $tt->getEndHiddenFieldValue('content', $this);
 
       echo "</td>";
@@ -5009,6 +5037,10 @@ class Ticket extends CommonITILObject {
       echo "</table>";
       echo "<input type='hidden' name='id' value='$ID'>";
 
+      if (isset($options['_projecttasks_id'])) {
+         echo Html::hidden('_projecttasks_id', ['value' => $options['_projecttasks_id']]);
+      }
+
       echo "</div>";
 
       if (!$options['template_preview']) {
@@ -5100,12 +5132,13 @@ class Ticket extends CommonITILObject {
             );
             break;
 
-         case "process" : // planned or assigned tickets
+         case "process" : // planned or assigned or incoming tickets
             $WHERE = array_merge(
                $WHERE,
                $search_assign,
-               ['glpi_tickets.status' => self::getProcessStatusArray()]
+               ['glpi_tickets.status' => array_merge(self::getProcessStatusArray(), [self::INCOMING])]
             );
+
             break;
 
          case "toapprove" : //tickets waiting for approval
@@ -5280,6 +5313,7 @@ class Ticket extends CommonITILObject {
       if (count($JOINS)) {
          $criteria = array_merge_recursive($criteria, $JOINS);
       }
+
       $iterator = $DB->request($criteria);
       $total_row_count = count($iterator);
       $displayed_row_count = (int)$_SESSION['glpidisplay_count_on_home'] > 0
@@ -5331,15 +5365,32 @@ class Ticket extends CommonITILObject {
                   break;
 
                case "process" :
-                  $options['criteria'][0]['field']      = 12; // status
-                  $options['criteria'][0]['searchtype'] = 'equals';
-                  $options['criteria'][0]['value']      = 'process';
-                  $options['criteria'][0]['link']       = 'AND';
 
-                  $options['criteria'][1]['field']      = 8; // groups_id_assign
-                  $options['criteria'][1]['searchtype'] = 'equals';
-                  $options['criteria'][1]['value']      = 'mygroups';
-                  $options['criteria'][1]['link']       = 'AND';
+                  $options['criteria'] = [
+                     [
+                        'field'        => 8,
+                        'searchtype'   => 'equals',
+                        'value'        => 'mygroups',
+                        'link'         => 'AND',
+                     ],
+                     [
+                        'link' => 'AND',
+                        'criteria' => [
+                           [
+                              'link'        => 'AND',
+                              'field'       => 12,
+                              'searchtype'  => 'equals',
+                              'value'       => Ticket::INCOMING,
+                           ],
+                           [
+                              'link'        => 'OR',
+                              'field'       => 12,
+                              'searchtype'  => 'equals',
+                              'value'       => 'process',
+                           ]
+                        ]
+                     ]
+                  ];
 
                   echo "<a href=\"".Ticket::getSearchURL()."?".
                          Toolbox::append_params($options, '&amp;')."\">".
@@ -6700,11 +6751,11 @@ class Ticket extends CommonITILObject {
    function getCalendar() {
 
       if (isset($this->fields['slas_id_ttr']) && $this->fields['slas_id_ttr'] > 0) {
-         $slm = new SLM();
-         if ($slm->getFromDB($this->fields['slas_id_ttr'])) {
+         $sla = new SLA();
+         if ($sla->getFromDB($this->fields['slas_id_ttr'])) {
             // not -1: calendar of the entity
-            if ($slm->getField('calendars_id') >= 0) {
-               return $slm->getField('calendars_id');
+            if ($sla->getField('calendars_id') >= 0) {
+               return $sla->getField('calendars_id');
             }
          }
       }
@@ -7399,7 +7450,7 @@ class Ticket extends CommonITILObject {
 
       $criteria = [];
       if (count($where_profile)) {
-         $criteria['WHERE'] = ['OR' => $where_profile];
+         $criteria['WHERE'] = [['OR' => $where_profile]];
       }
       if (count($join_profile)) {
          $criteria['LEFT JOIN'] = $join_profile;

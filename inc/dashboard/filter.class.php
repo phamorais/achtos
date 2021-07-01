@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -133,37 +133,37 @@ JAVASCRIPT;
    }
 
 
-   static function itilcategory(string $value = "0"): string {
+   static function itilcategory(string $value = ""): string {
       return self::dropdown($value, 'itilcategory', ItilCategory::class);
    }
 
-   static function requesttype(string $value = "0"): string {
+   static function requesttype(string $value = ""): string {
       return self::dropdown($value, 'requesttype', RequestType::class);
    }
 
-   static function location(string $value = "0"): string {
+   static function location(string $value = ""): string {
       return self::dropdown($value, 'location', Location::class);
    }
 
-   static function manufacturer(string $value = "0"): string {
+   static function manufacturer(string $value = ""): string {
       return self::dropdown($value, 'manufacturer', Manufacturer::class);
    }
 
-   static function group_tech(string $value = "0"): string {
-      return self::dropdown($value, 'group_tech', Group::class);
+   static function group_tech(string $value = ""): string {
+      return self::dropdown($value, 'group_tech', Group::class, ['toadd' => [-1 => __("My groups")]]);
    }
 
-   static function user_tech(string $value = "0"): string {
+   static function user_tech(string $value = ""): string {
       return self::dropdown($value, 'user_tech', User::class, ['right' => 'own_ticket']);
    }
 
    static function dropdown(
-      string $value = "0",
+      string $value = "",
       string $fieldname = "",
       string $itemtype = "",
       array $add_params = []
    ): string {
-      $value     = (int) $value;
+      $value     = !empty($value) ? (int) $value : null;
       $rand      = mt_rand();
       $label     = self::getAll()[$fieldname];
       $field     = $itemtype::dropdown([
@@ -194,7 +194,6 @@ JAVASCRIPT;
 
       return $js.self::field($fieldname, $field, $label, $value > 0);
    }
-
 
    /**
     * Get generic HTML for a filter

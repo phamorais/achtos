@@ -1,0 +1,356 @@
+/* --------------------------------------------------------
+Folha de estilo para Limesurvey - Happyness Feedback Widget
+Limesurvey: https://limesurvey.org
+versão: 2.3
+modificado pela última vez: 29/07/2019 por Moisés Rabelo de Lima
+autor: Moisés Rabelo de Lima
+email: moisesrlima@gmail.com
+website: https://www.behance.net/moisesrlima
+---------------------------------------------------------- */
+
+/*Reset CSS - Início*/
+#happiness-feedback,
+#happiness-feedback * {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 16px;
+  font: inherit;
+  vertical-align: baseline;
+  line-height: 1;
+  outline: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  *zoom: 1;
+  max-width: 100%;
+  font-size: 100%;
+  /* 1 */
+  -webkit-text-size-adjust: 100%;
+  /* 2 */
+  -ms-text-size-adjust: 100%;
+  /* 2 */
+  border: 0;
+  /* 1 */
+  -ms-interpolation-mode: bicubic;
+  /* 2 */
+  line-height: normal;
+  text-transform: none;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  position: relative;
+}
+
+/*Reset CSS - Fim*/
+
+#happiness-feedback #chat-circle {
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+  background: #5A5EB9;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  color: #fff;
+  padding: 28px;
+  cursor: pointer;
+  box-shadow: 0 3px 16px 0 rgba(0, 0, 0, 0.6), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+#happiness-feedback .btn#my-btn {
+  background: #fff;
+  border-radius: 45px;
+  color: #5865C3;
+  padding: 13px 40px 12px;
+}
+
+#happiness-feedback #chat-overlay {
+  background: rgba(255, 255, 255, 0.1);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: none;
+}
+
+#happiness-feedback .chat-box iframe#feedback {
+  width: 100%;
+}
+
+#happiness-feedback .chat-box {
+  display: none;
+  background: #efefef;
+  position: fixed;
+  right: 10px;
+  bottom: 50%;
+  width: 300px;
+  max-width: 86vw;
+  margin-bottom: -117px;
+  max-height: 100vh;
+  border-radius: 5px;
+  box-shadow: 0 5px 35px 9px #0000004d;
+  transition: all 0.5s ease;
+  min-width: 300px;
+  z-index: 9999;
+  animation: slide-right 0.3s ease-out;
+  -webkit-animation: slide-right 0.3s ease-out;
+  -moz-animation: slide-right 0.3s ease-out;
+}
+
+#happiness-feedback .chat-box.open {
+  display: block;
+  animation: slide-left 0.3s ease-out;
+  -webkit-animation: slide-left 0.3s ease-out;
+  -moz-animation: slide-left 0.3s ease-out;
+}
+
+#happiness-feedback .chat-box-toggle {
+  background: #023E87;
+  color: #fff;
+  width: 27px;
+  height: 27px;
+  overflow: hidden;
+  position: absolute;
+  right: 14px;
+  top: -11px;
+  font-size: 23px;
+  text-align: center;
+  border-radius: 200px;
+  vertical-align: middle;
+  text-indent: 0;
+  cursor: pointer;
+  box-shadow: 0px 2px 2px #00000047;
+}
+
+#happiness-feedback .chat-box-header {
+  background: #fff;
+  height: 28px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  color: #023E87;
+  text-align: center;
+  padding-top: 7px;
+  font: 20px sans-serif;
+}
+
+#happiness-feedback .chat-box-body {
+  position: relative;
+  height: 370px;
+  height: auto;
+  border: 0;
+  overflow: hidden;
+}
+
+#happiness-feedback #chat-input {
+  background: #f4f7f9;
+  width: 100%;
+  position: relative;
+  height: 47px;
+  resize: none;
+  outline: none;
+  border: 1px solid #ccc;
+  color: #888;
+  border-top: none;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+  overflow: hidden;
+  padding: 10px 50px 10px 15px;
+}
+
+#happiness-feedback .chat-input>form {
+  margin-bottom: 0;
+}
+
+#happiness-feedback .chat-submit {
+  position: absolute;
+  bottom: 3px;
+  right: 10px;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  border-radius: 50%;
+  color: #5A5EB9;
+  width: 35px;
+  height: 35px;
+}
+
+#happiness-feedback .chat-logs {
+  padding: 15px;
+  height: 370px;
+  overflow-y: scroll;
+}
+
+#happiness-feedback .chat-logs::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: #F5F5F5;
+}
+
+#happiness-feedback .chat-logs::-webkit-scrollbar {
+  width: 5px;
+  background-color: #F5F5F5;
+}
+
+#happiness-feedback .chat-logs::-webkit-scrollbar-thumb {
+  background-color: #5A5EB9;
+}
+
+#happiness-feedback #chat-input::-webkit-input-placeholder,
+#happiness-feedback #chat-input::-moz-placeholder,
+#happiness-feedback #chat-input:-ms-input-placeholder,
+#happiness-feedback #chat-input:-moz-placeholder {
+  color: #ccc;
+}
+
+#happiness-feedback .chat-msg.user>.msg-avatar img {
+  height: 45px;
+  border-radius: 50%;
+  float: left;
+  width: 15%;
+}
+
+#happiness-feedback .chat-msg.self>.msg-avatar img {
+  height: 45px;
+  border-radius: 50%;
+  float: right;
+  width: 15%;
+}
+
+#happiness-feedback .cm-msg-text {
+  background: #fff;
+  padding: 10px 15px;
+  color: #666;
+  max-width: 75%;
+  float: left;
+  margin-left: 10px;
+  position: relative;
+  margin-bottom: 20px;
+  border-radius: 30px;
+}
+
+#happiness-feedback .chat-msg {
+  clear: both;
+}
+
+#happiness-feedback .chat-msg.self>.cm-msg-text {
+  float: right;
+  margin-right: 10px;
+  background: #5A5EB9;
+  color: #fff;
+}
+
+#happiness-feedback .cm-msg-button>ul>li {
+  list-style: none;
+  float: left;
+  width: 50%;
+}
+
+#happiness-feedback .cm-msg-button {
+  clear: both;
+  margin-bottom: 70px;
+}
+
+#happiness-feedback .chat-box-body :after {
+  content: "";
+  opacity: 0.1;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  height: 100%;
+  position: absolute;
+  z-index: -1;
+}
+#happiness-feedback #chat-square.close{
+  display: none;
+}
+#happiness-feedback #chat-square {
+  position: fixed;
+  bottom: 50%;
+  right: -3px;
+  background: #ffffff;
+  width: 40px;
+  border-radius: 0 6px 6px 0;
+  color: #6f6f6f;
+  padding: 14px;
+  cursor: pointer;
+  box-shadow: 0 3px 16px 0 rgba(0, 0, 0, 0.29), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  direction: inherit;
+  transform: rotate(180deg);
+  writing-mode: vertical-lr;
+  font-family: sans-serif;
+  font-weight: 400;
+  z-index: 999;
+  font-size: 17px;
+  margin-bottom: -44px;
+  box-sizing: border-box;
+  padding: 15px 0px 15px 0;
+  line-height: 40px;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  white-space: nowrap !important;
+  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+  cursor: pointer;
+  -webkit-writing-mode: vertical-lr;
+  -moz-writing-mode: vertical-lr;
+  -ms-writing-mode: tb-rl;
+  -o-writing-mode: vertical-lr;
+  writing-mode: vertical-lr;
+}
+
+#happiness-feedback .bg-primary {
+  background: transparent;
+  background-color: #2c3e50;
+  color: #5a5eb9;
+  text-align: center;
+}
+
+#happiness-feedback.teal-theme #chat-square i{
+  width: 22px;
+  height: 23px;
+  background-size: 100%;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAZCAYAAAA14t7uAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAHESURBVHgBtZS/a8JAFMcvwcGh0AwdHLPZMZN06OAWoRU6dOgiKnQ3zh106JDZf6CDm3QURGjp6KhLphSvQ6EBRSspUlC4vtNGzjOnnj8+8Dh9X/K9d++4p6ANEEIMWAwm9QHRURTlG8kCZhpECWJIxLxBZGVMCxsMeTCEvsm0RHYDk3nLDmoaMFypHBI35DC0eWNMDocVmCZ5xXGc50QicZ3JZO5Go5HLavR/oGGMG0RUNfx44hXbti9BikBEW63WA6tVq9X7QCuXy0lB1QY1bvNZ+hHTphwnJxlNFxhbKlp+VQG/aD90FR2HU3U6nf7wWTiKhvbA931PnUwmnyFaidmggCTp9/uO6nneS4hmgekQVozC72Atrut21MFg8CrQtf+QAqrtmKb5PjPo9Xptsj25wISEPK5arbbQUbFYTEGv/S2NMUSWzOcLZoVut9vgTxltNpuPZE/gVV6FtSdWr9dticpXgDbERL2P5fP5W8meL0DzGSKEzgmjUqlYdHqNx+Mv3oBOuLA8a6Ks2YBeAj2aBmPyLB6Pn9Ak9NGDhb7WCGx+kU6nTV3XUzMzAEkyG5OImXrM5ud0NtP7QUeAbrh0cX9MOf5itNLDkgAAAABJRU5ErkJggg==');
+}
+#happiness-feedback.teal-theme #chat-square {
+  background: #37A6AD;
+  color: #ffffff;
+  text-shadow: 0px -1px 1px rgba(0, 0, 0, 0.03);
+}
+#happiness-feedback.teal-theme .chat-box-toggle {
+  background: #37A6AD;
+}
+@keyframes slide-left {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+#happiness-feedback #chat-square i {
+  width: 17px;
+  height: 18px;
+  display: inline-block;
+  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAASCAYAAAC9+TVUAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAFOSURBVHgBtVTtcYMwDBU+/y8jkAlKN2g3yAAcphM0G8QbJExQYAHaCZoR2CAegS4AfbpTeoQY4j/RncAW0vPTB46KoojHcdxDCyKKaUWiKDpB36uqclO7RvCBAfCxx/60BgK/V7xa6MsVeJ7nZwBQXdcbuiPGmBZAW6XUZspGQROomzojxWSBya/PruaGLMu2wzCcwdBSoOgbg9YOJ3ZIsZNUe+gb6PfBIHDuSAqHGnxwMaE7bO0SiKIV4XbK0sjb8QOgn8Eg0gFOI+F90zSWZ4XZgeUhCES6FCPQXfZYl8Jmh5qZuyDoUisB37K3F5vIEcCp9p2OoB84lziVfwPulJ25lZImAz9rD4EUIEw7XppiTOxxPrFXgo9fPNZcRAoUBuHhSmdAzucMdk8+O6dTQ/cynd5gEb4yUva5uQo4PxQnwdpwLVZA/u8TeoT8AUNIqfSlh3DxAAAAAElFTkSuQmCC');
+  transform: rotate(180deg);
+}
+
+#happiness-feedback.teal-theme #chat-square i{
+  width: 22px;
+  height: 23px;
+  background-size: 100%;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAZCAYAAAA14t7uAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAHESURBVHgBtZS/a8JAFMcvwcGh0AwdHLPZMZN06OAWoRU6dOgiKnQ3zh106JDZf6CDm3QURGjp6KhLphSvQ6EBRSspUlC4vtNGzjOnnj8+8Dh9X/K9d++4p6ANEEIMWAwm9QHRURTlG8kCZhpECWJIxLxBZGVMCxsMeTCEvsm0RHYDk3nLDmoaMFypHBI35DC0eWNMDocVmCZ5xXGc50QicZ3JZO5Go5HLavR/oGGMG0RUNfx44hXbti9BikBEW63WA6tVq9X7QCuXy0lB1QY1bvNZ+hHTphwnJxlNFxhbKlp+VQG/aD90FR2HU3U6nf7wWTiKhvbA931PnUwmnyFaidmggCTp9/uO6nneS4hmgekQVozC72Atrut21MFg8CrQtf+QAqrtmKb5PjPo9Xptsj25wISEPK5arbbQUbFYTEGv/S2NMUSWzOcLZoVut9vgTxltNpuPZE/gVV6FtSdWr9dticpXgDbERL2P5fP5W8meL0DzGSKEzgmjUqlYdHqNx+Mv3oBOuLA8a6Ks2YBeAj2aBmPyLB6Pn9Ak9NGDhb7WCGx+kU6nTV3XUzMzAEkyG5OImXrM5ud0NtP7QUeAbrh0cX9MOf5itNLDkgAAAABJRU5ErkJggg==');
+}
+#happiness-feedback.teal-theme #chat-square {
+  background: #37A6AD;
+  color: #ffffff;
+  text-shadow: 0px -1px 1px rgba(0, 0, 0, 0.03);
+}
+#happiness-feedback.teal-theme .chat-box-toggle {
+  background: #37A6AD;
+}

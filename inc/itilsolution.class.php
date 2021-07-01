@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -349,27 +349,30 @@ class ITILSolution extends CommonDBChild {
          Ticket_Ticket::manageLinkedTicketsOnSolved($this->item->getID(), $this);
       }
 
-      $status = $item::SOLVED;
+      if (!isset($this->input['_linked_ticket'])) {
+         $status = $item::SOLVED;
 
-      //handle autoclose, for tickets only
-      if ($item->getType() == Ticket::getType()) {
-         $autoclosedelay =  Entity::getUsedConfig(
-            'autoclose_delay',
-            $this->item->getEntityID(),
-            '',
-            Entity::CONFIG_NEVER
-         );
+         //handle autoclose, for tickets only
+         if ($item->getType() == Ticket::getType()) {
+            $autoclosedelay =  Entity::getUsedConfig(
+               'autoclose_delay',
+               $this->item->getEntityID(),
+               '',
+               Entity::CONFIG_NEVER
+            );
 
-         // 0 = immediatly
-         if ($autoclosedelay == 0) {
-            $status = $item::CLOSED;
+            // 0 = immediatly
+            if ($autoclosedelay == 0) {
+               $status = $item::CLOSED;
+            }
          }
+
+         $this->item->update([
+            'id'     => $this->item->getID(),
+            'status' => $status
+         ]);
       }
 
-      $this->item->update([
-         'id'     => $this->item->getID(),
-         'status' => $status
-      ]);
       parent::post_addItem();
    }
 

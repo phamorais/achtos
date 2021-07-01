@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -96,6 +96,6 @@ if (isset($_POST["add"])) {
 } else {
    Html::header(SoftwareLicense::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'],
                 "management", "softwarelicense");
-   $license->display($_REQUEST + ['formoptions' => "data-track-changes=true"]);
+   $license->display($_REQUEST);
    Html::footer();
 }

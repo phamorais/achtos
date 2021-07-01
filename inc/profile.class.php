@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -326,6 +326,19 @@ class Profile extends CommonDBTM {
             }
          }
          $input["change_status"] = exportArrayToDB($cycle);
+      }
+
+      // keep only unnecessary rights when switching from standard to self-service interface
+      if (!isset($input["_ticket"]) && isset($input['interface']) && $input['interface'] == "helpdesk") {
+
+         $ticket = new Ticket;
+         $ss_rights = $ticket->getRights("helpdesk");
+         $ss_rights = array_keys($ss_rights);
+
+         $input["_ticket"] = [];
+         foreach ($ss_rights as $right) {
+            $input["_ticket"][$right] = ($this->fields['ticket'] & $right) ? 1 : 0;
+         }
       }
 
       $this->profileRight = [];
@@ -2374,21 +2387,6 @@ class Profile extends CommonDBTM {
          'joinparams'         => [
             'jointype'           => 'child',
             'condition'          => "AND `NEWTABLE`.`name`= 'logs'"
-         ]
-      ];
-
-      $tab[] = [
-         'id'                 => '62',
-         'table'              => 'glpi_profilerights',
-         'field'              => 'rights',
-         'name'               => __('Maintenance'),
-         'datatype'           => 'right',
-         'rightclass'         => 'Backup',
-         'rightname'          => 'backup',
-         'noread'             => true,
-         'joinparams'         => [
-            'jointype'           => 'child',
-            'condition'          => "AND `NEWTABLE`.`name`= 'backup'"
          ]
       ];
 

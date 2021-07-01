@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -52,11 +52,11 @@ class NotificationTargetCertificate extends NotificationTarget {
    function addAdditionalTargets($event = '') {
       $this->addTarget(
          Notification::ITEM_TECH_IN_CHARGE,
-         __('Technician in charge of the domain')
+         __('Technician in charge of the certificate')
       );
       $this->addTarget(
          Notification::ITEM_TECH_GROUP_IN_CHARGE,
-         __('Group in charge of the domain')
+         __('Group in charge of the certificate')
       );
    }
 

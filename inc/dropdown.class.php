@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -120,8 +120,9 @@ class Dropdown {
       $name         = $params['emptylabel'];
       $comment      = "";
 
-      // Check default value for dropdown : need to be a numeric
-      if ((strlen($params['value']) == 0) || !is_numeric($params['value']) && $params['value'] != 'mygroups') {
+      // Check default value for dropdown : need to be a numeric (or null)
+      if ($params['value'] !== null
+          && ((strlen($params['value']) == 0) || !is_numeric($params['value']) && $params['value'] != 'mygroups')) {
          $params['value'] = 0;
       }
 
@@ -172,11 +173,13 @@ class Dropdown {
             'condition'            => $params['condition'],
             'used'                 => $params['used'],
             'toadd'                => $params['toadd'],
-            'entity_restrict'      => (is_array($params['entity']) ? json_encode(array_values($params['entity'])) : $params['entity']),
+            'entity_restrict'      => ($entity_restrict = (is_array($params['entity']) ? json_encode(array_values($params['entity'])) : $params['entity'])),
             'on_change'            => $params['on_change'],
             'permit_select_parent' => $params['permit_select_parent'],
             'specific_tags'        => $params['specific_tags'],
-            '_idor_token'          => Session::getNewIDORToken($itemtype),
+            '_idor_token'          => Session::getNewIDORToken($itemtype, [
+               'entity_restrict' => $entity_restrict,
+            ]),
       ];
 
       $output = "<span class='no-wrap'>";
@@ -822,274 +825,164 @@ class Dropdown {
       if (is_null($optgroup)) {
          $optgroup = [
              __('Common') => [
-                 'Location'               => Location::getTypeName(Session::getPluralNumber()),
-                 'State'                  => _n('Status of items',
-                                                'Statuses of items',
-                                                Session::getPluralNumber()),
-                 'Manufacturer'           => _n('Manufacturer', 'Manufacturers',
-                                                Session::getPluralNumber()),
-                 'Blacklist'              => _n('Blacklist', 'Blacklists',
-                                                Session::getPluralNumber()),
-                 'BlacklistedMailContent' => __('Blacklisted mail content')
+                 'Location' => null,
+                 'State' => null,
+                 'Manufacturer' => null,
+                 'Blacklist' => null,
+                 'BlacklistedMailContent' => null
              ],
 
              __('Assistance') => [
-                 'ITILCategory'        => _n('Ticket category',
-                                             'Ticket categories',
-                                             Session::getPluralNumber()),
-                 'TaskCategory'        => _n('Task category', 'Task categories',
-                                             Session::getPluralNumber()),
-                 'TaskTemplate'        => TaskTemplate::getTypeName(Session::getPluralNumber()),
-                 'SolutionType'        => SolutionType::getTypeName(Session::getPluralNumber()),
-                 'SolutionTemplate'    => _n('Solution template',
-                                             'Solution templates',
-                                             Session::getPluralNumber()),
-                 'RequestType'         => RequestType::getTypeName(Session::getPluralNumber()),
-                 'ITILFollowupTemplate' => _n('Followup template', 'Followup templates',
-                                             Session::getPluralNumber()),
-                 'ProjectState'        => _n('Project state', 'Project states',
-                                             Session::getPluralNumber()),
-                 'ProjectType'         => _n('Project type', 'Project types',
-                                             Session::getPluralNumber()),
-                 'ProjectTaskType'     => _n('Project tasks type',
-                                             'Project tasks types',
-                                             Session::getPluralNumber()),
-                 'ProjectTaskTemplate' => _n('Project task template', 'Project task templates',
-                                             Session::getPluralNumber()),
-                 'PlanningExternalEventTemplate'
-                                       => PlanningExternalEventTemplate::getTypeName(
-                                             Session::getPluralNumber()),
-                 'PlanningEventCategory'
-                                       => PlanningEventCategory::getTypeName(
-                                             Session::getPluralNumber()),
+                 'ITILCategory' => null,
+                 'TaskCategory' => null,
+                 'TaskTemplate' => null,
+                 'SolutionType' => null,
+                 'SolutionTemplate' => null,
+                 'RequestType' => null,
+                 'ITILFollowupTemplate' => null,
+                 'ProjectState' => null,
+                 'ProjectType' => null,
+                 'ProjectTaskType' => null,
+                 'ProjectTaskTemplate' => null,
+                 'PlanningExternalEventTemplate' => null,
+                 'PlanningEventCategory' => null,
              ],
 
              _n('Type', 'Types', Session::getPluralNumber()) => [
-                 'ComputerType'         => _n('Computer type',
-                                              'Computers types',
-                                              Session::getPluralNumber()),
-                 'NetworkEquipmentType' => _n('Networking equipment type',
-                                              'Networking equipment types',
-                                              Session::getPluralNumber()),
-                 'PrinterType'          => _n('Printer type', 'Printer types',
-                                              Session::getPluralNumber()),
-                 'MonitorType'          => _n('Monitor type', 'Monitor types',
-                                              Session::getPluralNumber()),
-                 'PeripheralType'       => _n('Devices type', 'Devices types',
-                                              Session::getPluralNumber()),
-                 'PhoneType'            => _n('Phone type', 'Phones types',
-                                              Session::getPluralNumber()),
-                 'SoftwareLicenseType'  => _n('License type', 'License types',
-                                              Session::getPluralNumber()),
-                 'CartridgeItemType'    => _n('Cartridge type',
-                                              'Cartridge types',
-                                              Session::getPluralNumber()),
-                 'ConsumableItemType'   => _n('Consumable type',
-                                              'Consumable types',
-                                              Session::getPluralNumber()),
-                 'ContractType'         => ContractType::getTypeName(Session::getPluralNumber()),
-                 'ContactType'          => _n('Contact type', 'Contact types',
-                                              Session::getPluralNumber()),
-                 'DeviceGenericType'    => _n('Generic device type', 'Generic device types',
-                                              Session::getPluralNumber()),
-                 'DeviceSensorType'     => _n('Sensor type', 'Sensors types',
-                                              Session::getPluralNumber()),
-                 'DeviceMemoryType'     => DeviceMemoryType::getTypeName(Session::getPluralNumber()),
-                 'SupplierType'         => _n('Third party type',
-                                              'Third party types',
-                                              Session::getPluralNumber()),
-                 'InterfaceType'        => _n('Interface type (Hard drive...)',
-                                              'Interface types (Hard drive...)',
-                                              Session::getPluralNumber()) ,
-                 'DeviceCaseType'       => _n('Case type', 'Case types',
-                                              Session::getPluralNumber()),
-                 'PhonePowerSupply'     => _n('Phone power supply type',
-                                              'Phones power supply types',
-                                              Session::getPluralNumber()),
-                 'Filesystem'           => Filesystem::getTypeName(Session::getPluralNumber()),
-                 'CertificateType'      => _n('Certificate type', 'Certificate types',
-                                               Session::getPluralNumber()),
-                 'BudgetType'           => _n('Budget type', 'Budget types',
-                                              Session::getPluralNumber()),
-                 'DeviceSimcardType'    => _n('Simcard type', 'Simcard types',
-                                              Session::getPluralNumber()),
-                 'LineType'             => _n('Line type', 'Line types',
-                                             Session::getPluralNumber()),
-                 'RackType'             => RackType::getTypeName(Session::getPluralNumber()),
-                 'PDUType'              => PDUType::getTypeName(Session::getPluralNumber()),
-                 'PassiveDCEquipmentType' => PassiveDCEquipmentType::getTypeName(Session::getPluralNumber()),
-                 'ClusterType'          => ClusterType::getTypeName(Session::getPluralNumber()),
+                 'ComputerType' => null,
+                 'NetworkEquipmentType' => null,
+                 'PrinterType' => null,
+                 'MonitorType' => null,
+                 'PeripheralType' => null,
+                 'PhoneType' => null,
+                 'SoftwareLicenseType' => null,
+                 'CartridgeItemType' => null,
+                 'ConsumableItemType' => null,
+                 'ContractType' => null,
+                 'ContactType' => null,
+                 'DeviceGenericType' => null,
+                 'DeviceSensorType' => null,
+                 'DeviceMemoryType' => null,
+                 'SupplierType' => null,
+                 'InterfaceType' => null,
+                 'DeviceCaseType' => null,
+                 'PhonePowerSupply' => null,
+                 'Filesystem' => null,
+                 'CertificateType' => null,
+                 'BudgetType' => null,
+                 'DeviceSimcardType' => null,
+                 'LineType' => null,
+                 'RackType' => null,
+                 'PDUType' => null,
+                 'PassiveDCEquipmentType' => null,
+                 'ClusterType' => null,
              ],
 
              _n('Model', 'Models', 1) => [
-                 'ComputerModel'         => _n('Computer model',
-                                               'Computer models',
-                                               Session::getPluralNumber()),
-                 'NetworkEquipmentModel' => _n('Networking equipment model',
-                                               'Networking equipment models',
-                                               Session::getPluralNumber()),
-                 'PrinterModel'          => _n('Printer model',
-                                               'Printer models',
-                                               Session::getPluralNumber()),
-                 'MonitorModel'          => _n('Monitor model',
-                                               'Monitor models',
-                                               Session::getPluralNumber()),
-                 'PeripheralModel'       => _n('Peripheral model',
-                                               'Peripheral models',
-                                               Session::getPluralNumber()),
-                 'PhoneModel'            =>  _n('Phone model', 'Phone models',
-                                                Session::getPluralNumber()),
+                 'ComputerModel' => null,
+                 'NetworkEquipmentModel' => null,
+                 'PrinterModel' => null,
+                 'MonitorModel' => null,
+                 'PeripheralModel' => null,
+                 'PhoneModel' => null,
 
                   // Devices models :
-                  'DeviceCaseModel'          => _n('Device case model',
-                                                   'Device case models', Session::getPluralNumber()),
-                  'DeviceControlModel'       => _n('Device control model',
-                                                   'Device control models', Session::getPluralNumber()),
-                  'DeviceDriveModel'         => _n('Device drive model',
-                                                   'Device drive models', Session::getPluralNumber()),
-                  'DeviceGenericModel'       => _n('Device generic model',
-                                                   'Device generic models', Session::getPluralNumber()),
-                  'DeviceGraphicCardModel'   => _n('Device graphic card model',
-                                                   'Device graphic card models', Session::getPluralNumber()),
-                  'DeviceHardDriveModel'     => _n('Device hard drive model',
-                                                   'Device hard drive models', Session::getPluralNumber()),
-                  'DeviceMemoryModel'        => _n('Device memory model',
-                                                   'Device memory models', Session::getPluralNumber()),
-                  'DeviceMotherBoardModel'   => _n('Device mother board model',
-                                                   'Device mother board models', Session::getPluralNumber()),
-                  'DeviceNetworkCardModel'   => _n('Device network card model',
-                                                   'Device network card models', Session::getPluralNumber()),
-                  'DevicePciModel'           => _n('Other component model',
-                                                   'Other component models', Session::getPluralNumber()),
-                  'DevicePowerSupplyModel'   => _n('Device power supply model',
-                                                   'Device power supply models', Session::getPluralNumber()),
-                  'DeviceProcessorModel'     => _n('Device processor model',
-                                                   'Device processor models', Session::getPluralNumber()),
-                  'DeviceSoundCardModel'     => _n('Device sound card model',
-                                                   'Device sound card models', Session::getPluralNumber()),
-                  'DeviceSensorModel'        => _n('Device sensor model',
-                                                   'Device sensor models', Session::getPluralNumber()),
-                  'RackModel'                => RackModel::getTypeName(Session::getPluralNumber()),
-                  'EnclosureModel'           => EnclosureModel::getTypeName(Session::getPluralNumber()),
-                  'PDUModel'                 => PDUModel::getTypeName(Session::getPluralNumber()),
-                  'PassiveDCEquipmentModel'  => PassiveDCEquipmentModel::getTypeName(Session::getPluralNumber()),
+                  'DeviceCaseModel' => null,
+                  'DeviceControlModel' => null,
+                  'DeviceDriveModel' => null,
+                  'DeviceGenericModel' => null,
+                  'DeviceGraphicCardModel' => null,
+                  'DeviceHardDriveModel' => null,
+                  'DeviceMemoryModel' => null,
+                  'DeviceMotherBoardModel' => null,
+                  'DeviceNetworkCardModel' => null,
+                  'DevicePciModel' => null,
+                  'DevicePowerSupplyModel' => null,
+                  'DeviceProcessorModel' => null,
+                  'DeviceSoundCardModel' => null,
+                  'DeviceSensorModel' => null,
+                  'RackModel' => null,
+                  'EnclosureModel' => null,
+                  'PDUModel' => null,
+                  'PassiveDCEquipmentModel' => null,
              ],
 
              _n('Virtual machine', 'Virtual machines', Session::getPluralNumber()) => [
-                 'VirtualMachineType'   => VirtualMachineType::getTypeName(Session::getPluralNumber()),
-                 'VirtualMachineSystem' => _n('Virtualization model',
-                                              'Virtualization models',
-                                             Session::getPluralNumber()),
-                 'VirtualMachineState'  => VirtualMachineState::getTypeName(Session::getPluralNumber())
+                 'VirtualMachineType' => null,
+                 'VirtualMachineSystem' => null,
+                 'VirtualMachineState' => null
              ],
 
              __('Management') => [
-                 'DocumentCategory' => _n('Document heading',
-                                          'Document headings',
-                                          Session::getPluralNumber()),
-                 'DocumentType'     => _n('Document type', 'Document types',
-                                          Session::getPluralNumber()),
-                 'BusinessCriticity' => _n('Business criticity', 'Business criticities',
-                                          Session::getPluralNumber())
-
+                 'DocumentCategory' => null,
+                 'DocumentType' => null,
+                 'BusinessCriticity' => null
              ],
 
              __('Tools') => [
-                 'KnowbaseItemCategory' => _n('Knowledge base category',
-                                              'Knowledge base categories',
-                                              Session::getPluralNumber())
+                 'KnowbaseItemCategory' => null
              ],
 
              _n('Calendar', 'Calendars', 1) => [
-                 'Calendar' => _n('Calendar', 'Calendars',
-                                  Session::getPluralNumber()),
-                 'Holiday'  => _n('Close time', 'Close times',
-                                  Session::getPluralNumber())
+                 'Calendar' => null,
+                 'Holiday' => null
              ],
 
              OperatingSystem::getTypeName(Session::getPluralNumber()) => [
-                 'OperatingSystem'    => OperatingSystem::getTypeName(Session::getPluralNumber()),
-                 'OperatingSystemVersion'
-                                      => _n('Version',
-                                            'Versions',
-                                            Session::getPluralNumber()),
-                 'OperatingSystemServicePack'
-                                      => _n('Service pack', 'Service packs',
-                                            Session::getPluralNumber()),
-                 'OperatingSystemArchitecture'
-                                      => _n('Architecture',
-                                            'Architectures',
-                                            Session::getPluralNumber()),
-                 'OperatingSystemEdition'
-                                      => _n('Edition',
-                                            'Editions',
-                                             Session::getPluralNumber()),
-                 'OperatingSystemKernel' => OperatingSystemKernel::getTypeName(Session::getPluralNumber()),
-                 'OperatingSystemKernelVersion' => OperatingSystemKernelVersion::getTypeName(Session::getPluralNumber()),
-                 'AutoUpdateSystem'   => _n('Update source', 'Update sources',
-                                            Session::getPluralNumber())
+                 'OperatingSystem' => null,
+                 'OperatingSystemVersion' => null,
+                 'OperatingSystemServicePack' => null,
+                 'OperatingSystemArchitecture' => null,
+                 'OperatingSystemEdition' => null,
+                 'OperatingSystemKernel' => null,
+                 'OperatingSystemKernelVersion' => null,
+                 'AutoUpdateSystem' => null
              ],
 
              __('Networking') => [
-                 'NetworkInterface'         => NetworkInterface::getTypeName(Session::getPluralNumber()),
-                 'Netpoint'                 => _n('Network outlet', 'Network outlets',
-                                                  Session::getPluralNumber()),
-                 'Network'                  => _n('Network', 'Networks',
-                                                  Session::getPluralNumber()),
-                 'Vlan'                     => __('VLAN'),
-                 'LineOperator'             => _n('Line operator', 'Line operators',
-                                                  Session::getPluralNumber()),
-                 'DomainType'               => DomainType::getTypeName(Session::getPluralNumber()),
-                 'DomainRelation'           => DomainRelation::getTypeName(Session::getPluralNumber()),
-                 'DomainRecordType'         => DomainRecordType::getTypeName(Session::getPluralNumber())
+                 'NetworkInterface' => null,
+                 'Netpoint' => null,
+                 'Network' => null,
+                 'Vlan' => null,
+                 'LineOperator' => null,
+                 'DomainType' => null,
+                 'DomainRelation' => null,
+                 'DomainRecordType' => null
              ],
 
              __('Internet') => [
-                 'IPNetwork'    => _n('IP network', 'IP networks',
-                                      Session::getPluralNumber()),
-                 'FQDN'         => _n('Internet domain', 'Internet domains',
-                                      Session::getPluralNumber()),
-                 'WifiNetwork'  => _n('Wifi network', 'Wifi networks',
-                                      Session::getPluralNumber()),
-                 'NetworkName'  => _n('Network name', 'Network names',
-                                      Session::getPluralNumber())
+                 'IPNetwork' => null,
+                 'FQDN' => null,
+                 'WifiNetwork' => null,
+                 'NetworkName' => null
              ],
 
              _n('Software', 'Software', 1) => [
-                 'SoftwareCategory' => _n('Software category',
-                                          'Software categories',
-                                          Session::getPluralNumber())
+                'SoftwareCategory' => null
              ],
 
              User::getTypeName(1) => [
-                 'UserTitle'     => _n('User title', 'Users titles',
-                                       Session::getPluralNumber()),
-                 'UserCategory'  => _n('User category', 'User categories',
-                                       Session::getPluralNumber())
+                 'UserTitle' => null,
+                 'UserCategory' => null
              ],
 
              __('Authorizations assignment rules') => [
-                 'RuleRightParameter' => _n('LDAP criterion', 'LDAP criteria',
-                                            Session::getPluralNumber())
+                'RuleRightParameter' => null
              ],
 
              __('Fields unicity') => [
-                 'Fieldblacklist' => _n('Ignored value for the unicity',
-                                        'Ignored values for the unicity',
-                                        Session::getPluralNumber())
+                'Fieldblacklist' => null
              ],
 
              __('External authentications') => [
-                 'SsoVariable' => _n('Field storage of the login in the HTTP request',
-                                     'Fields storage of the login in the HTTP request',
-                                     Session::getPluralNumber())
+                'SsoVariable' => null
              ],
              __('Power management') => [
-               'Plug'=> Plug::getTypeName(Session::getPluralNumber())
+               'Plug' => null
              ],
              __('Appliances') => [
-               'ApplianceType'         => ApplianceType::getTypeName(Session::getPluralNumber()),
-               'ApplianceEnvironment'  => ApplianceEnvironment::getTypeName(Session::getPluralNumber())
+               'ApplianceType' => null,
+               'ApplianceEnvironment' => null
              ]
 
          ]; //end $opt
@@ -1100,12 +993,13 @@ class Dropdown {
             $optgroup = array_merge($optgroup, $plugdrop);
          }
 
-         foreach ($optgroup as $label=>$dp) {
-            foreach ($dp as $key => $val) {
-
+         foreach ($optgroup as $label => &$dp) {
+            foreach ($dp as $key => &$val) {
                if ($tmp = getItemForItemtype($key)) {
                   if (!$tmp->canView()) {
                      unset($optgroup[$label][$key]);
+                  } else if ($val === null) {
+                     $val = $key::getTypeName(Session::getPluralNumber());
                   }
                } else {
                   unset($optgroup[$label][$key]);
@@ -1999,7 +1893,7 @@ class Dropdown {
                      if ($optgroup_tooltips && isset($optgroup_tooltips[$key2])) {
                         $output .= ' title="'.$optgroup_tooltips[$key2].'"';
                      }
-                     $output .= ">" .  $val2 . "</option>";
+                     $output .= ">" .  Html::entities_deep($val2) . "</option>";
                      if ($max_option_size < strlen($val2)) {
                         $max_option_size = strlen($val2);
                      }
@@ -2019,7 +1913,7 @@ class Dropdown {
                   if (isset($param['option_tooltips'][$key])) {
                      $output .= ' title="'.$param['option_tooltips'][$key].'"';
                   }
-                  $output .= ">" .$val . "</option>";
+                  $output .= ">" .Html::entities_deep($val) . "</option>";
                   if ($max_option_size < strlen($val)) {
                      $max_option_size = strlen($val);
                   }
@@ -2290,6 +2184,11 @@ class Dropdown {
    public static function getDropdownValue($post, $json = true) {
       global $DB, $CFG_GLPI;
 
+      // check if asked itemtype is the one originaly requested by the form
+      if (!Session::validateIDOR($post)) {
+         return;
+      }
+
       if (isset($post["entity_restrict"])
          && !is_array($post["entity_restrict"])
          && (substr($post["entity_restrict"], 0, 1) === '[')
@@ -2305,11 +2204,6 @@ class Dropdown {
       }
       if (isset($post['entity_restrict']) && 'default' === $post['entity_restrict']) {
          $post['entity_restrict'] = $_SESSION['glpiactiveentities'];
-      }
-
-      // check if asked itemtype is the one originaly requested by the form
-      if (!Session::validateIDOR($post)) {
-         return;
       }
 
       // Security
@@ -2780,6 +2674,10 @@ class Dropdown {
                $orwhere[$table . '.' . $item->getIndexName()] = ['LIKE', "%{$post['searchText']}%"];
             }
 
+            if ($item instanceof CommonDCModelDropdown) {
+               $orwhere[$table . '.product_number'] = ['LIKE', $search];
+            }
+
             if (Session::haveTranslations($post['itemtype'], $field)) {
                $orwhere['namet.value'] = ['LIKE', $search];
             }
@@ -2988,6 +2886,8 @@ class Dropdown {
                   } else {
                      $outputval = $tmpitem->getTypeName();
                   }
+               } else if ($item instanceof CommonDCModelDropdown) {
+                  $outputval =sprintf(__('%1$s - %2$s'), $data[$field], $data['product_number']);
                } else {
                   $outputval = $data[$field];
                }

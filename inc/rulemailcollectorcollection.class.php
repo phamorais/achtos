@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -77,7 +77,7 @@ class RuleMailCollectorCollection extends RuleCollection {
       }
 
       //Add all user's groups
-      if (in_array('groups', $fields)) {
+      if (in_array('_groups_id_requester', $fields)) {
          foreach (Group_User::getUserGroups($input['_users_id_requester']) as $group) {
             $input['_groups_id_requester'][] = $group['id'];
          }

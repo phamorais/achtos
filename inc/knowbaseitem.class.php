@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -1149,7 +1149,7 @@ class KnowbaseItem extends CommonDBVisible implements ExtraVisibilityCriteria {
     * @param $params array  (contains, knowbaseitemcategories_id, faq)
     * @param $type   string search type : browse / search (default search)
     *
-    * @return String : SQL request
+    * @return array : SQL request
    **/
    static function getListRequest(array $params, $type = 'search') {
       global $DB;
@@ -1620,8 +1620,8 @@ class KnowbaseItem extends CommonDBVisible implements ExtraVisibilityCriteria {
                   'WHERE'  => [
                      'items_id'  => $data["id"],
                      'itemtype'  => 'KnowbaseItem'
-                  ]
-               ] + getEntitiesRestrictCriteria());
+                  ] + getEntitiesRestrictCriteria()
+               ]);
                while ($docs = $iterator->next()) {
                   $doc = new Document();
                   $doc->getFromDB($docs["documents_id"]);

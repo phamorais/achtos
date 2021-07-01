@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -295,6 +295,7 @@ class KnowbaseItem_Revision extends CommonDBTM {
     */
    public function createNew(KnowbaseItem $item) {
       $this->getEmpty();
+      unset($this->fields['id']);
       $this->fields['knowbaseitems_id'] = $item->fields['id'];
       $this->fields['name'] = Toolbox::addslashes_deep($item->fields['name']);
       $this->fields['answer'] = Toolbox::clean_cross_side_scripting_deep(
@@ -315,9 +316,12 @@ class KnowbaseItem_Revision extends CommonDBTM {
     */
    public function createNewTranslated(KnowbaseItemTranslation $item) {
       $this->getEmpty();
+      unset($this->fields['id']);
       $this->fields['knowbaseitems_id'] = $item->fields['knowbaseitems_id'];
-      $this->fields['name'] = $item->fields['name'];
-      $this->fields['answer'] = $item->fields['answer'];
+      $this->fields['name'] = Toolbox::addslashes_deep($item->fields['name']);
+      $this->fields['answer'] = Toolbox::clean_cross_side_scripting_deep(
+         Toolbox::addslashes_deep($item->fields['answer'])
+      );
       $this->fields['date_creation'] = $item->fields['date_mod'];
       $this->fields['language'] = $item->fields['language'];
       $this->fields['revision'] = $this->getNewRevision();

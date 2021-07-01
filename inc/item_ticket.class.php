@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -672,7 +672,7 @@ class Item_Ticket extends CommonItilObject_Item {
                         'WHERE'  => [
                            'groups_id' => $groups
                         ] + getEntitiesRestrictCriteria($itemtable, '', $entity_restrict, $item->maybeRecursive()),
-                        'ORDER'  => 'name'
+                        'ORDER'  => $item->getNameField()
                      ];
 
                      if ($item->maybeDeleted()) {

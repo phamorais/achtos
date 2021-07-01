@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -46,6 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
    $input = file_get_contents('php://input');
    parse_str($input, $_REQUEST);
 }
+
+$_REQUEST = Toolbox::clean_cross_side_scripting_deep($_REQUEST);
 
 if (!isset($_REQUEST['action'])) {
    Toolbox::logError("Missing action parameter");

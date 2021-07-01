@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -364,7 +364,7 @@ class Log extends CommonDBTM {
                echo "<td class='tab_date'>".$data['date_mod']."</td>";
                echo "<td>".$data['user_name']."</td>";
                echo "<td>".$data['field']."</td>";
-               echo "<td width='60%'>".$data['change']."</td>";
+               echo "<td width='60%'>".Html::entities_deep($data['change'])."</td>";
                echo "</tr>";
             }
          }
@@ -1228,7 +1228,10 @@ class Log extends CommonDBTM {
       }
 
       if (isset($filters['date']) && !empty($filters['date'])) {
-         $sql_filters['date_mod'] = ['LIKE', "%{$filters['date']}%"];
+         $sql_filters[] = [
+            ['date_mod' => ['>=', "{$filters['date']} 00:00:00"]],
+            ['date_mod' => ['<=', "{$filters['date']} 23:59:59"]],
+         ];
       }
 
       if (isset($filters['linked_actions']) && !empty($filters['linked_actions'])) {

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -164,6 +164,12 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       // Common ITIL data
       $data = parent::getDataForObject($item, $options, $simple);
       /*$data['##ticket.description##'] = Html::clean($data['##ticket.description##']);*/
+
+      // Double encode emails stored between '<' and '>' tags
+      // Common case of this is when the ticket was created from a forwarded email
+      // Without double encoding, these emails are interpreted as html and not
+      // rendered in the final mail
+      $data['##ticket.description##'] = Toolbox::doubleEncodeEmails($data['##ticket.description##']);
 
       $data['##ticket.content##'] = $data['##ticket.description##'];
       // Specific data

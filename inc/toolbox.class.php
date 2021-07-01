@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -429,11 +429,7 @@ class Toolbox {
             $value          = str_replace($complete, $cleancomplete, $value);
          }
 
-         $config                      = ['safe'=>1];
-         $config["elements"]          = "*+iframe+audio+video";
-         $config["direct_list_nest"]  = 1;
-
-         $value                       = htmLawed($value, $config);
+         $value = htmLawed($value, self::getHtmLawedSafeConfig());
 
          // Special case : remove the 'denied:' for base64 img in case the base64 have characters
          // combinaison introduce false positive
@@ -444,6 +440,29 @@ class Toolbox {
       }
 
       return $value;
+   }
+
+   /**
+    * Returns a safe configuration for htmLawed.
+    *
+    * @return array
+    *
+    * @since 9.5.4
+    */
+   public static function getHtmLawedSafeConfig(): array {
+      $config = [
+         'elements'         => '* -applet -canvas -embed -object -script',
+         'deny_attribute'   => 'on*, srcdoc',
+         'comment'          => 1, // 1: remove HTML comments (and do not display their contents)
+         'cdata'            => 1, // 1: remove CDATA sections (and do not display their contents)
+         'direct_list_nest' => 1, // 1: Allow usage of ul/ol tags nested in other ul/ol tags
+         'schemes'          => '*: aim, app, feed, file, ftp, gopher, http, https, irc, mailto, news, nntp, sftp, ssh, tel, telnet, notes'
+      ];
+      if (!GLPI_ALLOW_IFRAME_IN_RICH_TEXT) {
+         $config['elements'] .= '-iframe';
+      }
+
+      return $config;
    }
 
    /**
@@ -911,7 +930,7 @@ class Toolbox {
       $value = ((array) $value === $value)
                   ? array_map([__CLASS__, 'addslashes_deep'], $value)
                   : (is_null($value)
-                       ? null : (is_resource($value)
+                       ? null : (is_resource($value) || is_object($value)
                        ? $value : $DB->escape(
                           str_replace(
                              ['&#039;', '&#39;', '&#x27;', '&apos;', '&quot;'],
@@ -937,7 +956,7 @@ class Toolbox {
       $value = ((array) $value === $value)
                   ? array_map([__CLASS__, 'stripslashes_deep'], $value)
                   : (is_null($value)
-                        ? null : (is_resource($value)
+                        ? null : (is_resource($value) || is_object($value)
                                     ? $value :stripslashes($value)));
 
       return $value;
@@ -1668,7 +1687,8 @@ class Toolbox {
       $opts = [
          CURLOPT_URL             => $url,
          CURLOPT_USERAGENT       => "GLPI/".trim($CFG_GLPI["version"]),
-         CURLOPT_RETURNTRANSFER  => 1
+         CURLOPT_RETURNTRANSFER  => 1,
+         CURLOPT_CONNECTTIMEOUT  => 5,
       ] + $eopts;
 
       if (!empty($CFG_GLPI["proxy_name"])) {
@@ -2752,14 +2772,14 @@ class Toolbox {
     * Slugify
     *
     * @param string $string String to slugify
+    * @param string $prefix Prefix to use (anchors cannot begin with a number)
     *
     * @return string
     */
-   public static function slugify($string) {
-      $string = transliterator_transliterate("Any-Latin; NFD; [:Nonspacing Mark:] Remove; NFC; [:Punctuation:] Remove; Lower();", $string);
+   public static function slugify($string, $prefix = 'slug_') {
+      $string = transliterator_transliterate("Any-Latin; Latin-ASCII; [^a-zA-Z0-9\.\ -_] Remove;", $string);
       $string = str_replace(' ', '-', self::strtolower($string, 'UTF-8'));
-      $string = self::removeHtmlSpecialChars($string);
-      $string = preg_replace('~[^0-9a-z]+~i', '-', $string);
+      $string = preg_replace('~[^0-9a-z_\.]+~i', '-', $string);
       $string = trim($string, '-');
       if ($string == '') {
          //prevent empty slugs; see https://github.com/glpi-project/glpi/issues/2946
@@ -2767,7 +2787,7 @@ class Toolbox {
          $string = 'nok_' . Toolbox::getRandomString(10);
       } else if (ctype_digit(substr($string, 0, 1))) {
          //starts with a number; not ok to be used as an html id attribute
-         $string = 'slug_' . $string;
+         $string = $prefix . $string;
       }
       return $string;
    }
@@ -3469,8 +3489,106 @@ HTML;
       // It is still possible to have false positives, but a fireproof check would be too complex
       // (or would require usage of a dedicated lib).
       return (preg_match(
-         "/^(?:http[s]?:\/\/(?:[^\s`!()\[\]{};'\",<>?«»“”‘’+]+|[^\s`!()\[\]{};:'\".,<>?«»“”‘’+]))$/iu",
+         "/^(?:http[s]?:\/\/(?:[^\s`!(){};'\",<>«»“”‘’+]+|[^\s`!()\[\]{};:'\".,<>?«»“”‘’+]))$/iu",
          $url
       ) === 1);
+   }
+
+   /**
+    * Search for html encoded <email> (&lt;email&gt;) in the given string and
+    * encode them a second time
+    *
+    * @param string $string
+    *
+    * @return string
+    */
+   public static function doubleEncodeEmails($string) {
+      // Search for strings that is an email surrounded by `<` and `>` but that cannot be an HTML tag:
+      // - absence of quotes indicate that values is not part of an HTML attribute,
+      // - absence of ; ensure that ending `&gt;` has not been reached.
+      $regex = "/(&lt;[^\"';]+?@[^\"';]+?&gt;)/";
+      $string = preg_replace_callback($regex, function($matches) {
+         return htmlentities($matches[1]);
+      }, $string);
+      return $string;
+   }
+
+   /**
+    * Normalizes file name
+    *
+    * @param string filename
+    *
+    * @return string
+    */
+   public static function filename($filename): string {
+      //remove extension
+      $ext = pathinfo($filename, PATHINFO_EXTENSION);
+      $filename = self::slugify(
+         preg_replace(
+            '/\.' . $ext . '$/',
+            '',
+            $filename
+         ),
+         '' //no prefix on filenames
+      );
+
+      $namesize = strlen($filename) + strlen($ext) + 1;
+      if ($namesize > 255) {
+         //limit to 255 characters
+         $filename = substr($filename, 0, $namesize - 255);
+      }
+
+      if (!empty($ext)) {
+         $filename .= '.' . $ext;
+      }
+
+      return $filename;
+   }
+
+   /**
+    * Clean _target argument
+    *
+    * @param string $target Target argument
+    *
+    * @return string
+    */
+   public static function cleanTarget(string $target): string {
+      global $CFG_GLPI;
+
+      $file = preg_replace('/^' . preg_quote($CFG_GLPI['root_doc'], '/') . '/', '', $target);
+      if (file_exists(GLPI_ROOT . $file)) {
+         return $target;
+      }
+
+      return '';
+   }
+
+   /**
+    * Get available tabs for a given item
+    *
+    * @param string   $itemtype Type of the item
+    * @param int|string|null $itemtype Id the item, optional
+    *
+    * @return array
+    */
+   public static function getAvailablesTabs(string $itemtype, $id = null): array {
+      $item = getItemForItemtype($itemtype);
+
+      if (!$item) {
+         return [];
+      }
+
+      if (!is_null($id) && !$item->isNewID($id)) {
+         $item->getFromDB($id);
+      }
+
+      $tabs = $item->defineAllTabs();
+      if (isset($tabs['no_all_tab'])) {
+         unset($tabs['no_all_tab']);
+      }
+      // Add all tab
+      $tabs[-1] = 'All';
+
+      return $tabs;
    }
 }

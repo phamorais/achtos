@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -221,7 +221,8 @@ class DeviceProcessor extends CommonDevice {
          'joinparams'         => $main_joinparams,
          'computation'        =>
             'SUM(' . $DB->quoteName('TABLE.nbcores') . ') * COUNT(DISTINCT ' .
-            $DB->quoteName('TABLE.id') . ') / COUNT(*)'
+            $DB->quoteName('TABLE.id') . ') / COUNT(*)',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       $tab[] = [
@@ -236,7 +237,8 @@ class DeviceProcessor extends CommonDevice {
          'joinparams'         => $main_joinparams,
          'computation'        =>
             'SUM(' . $DB->quoteName('TABLE.nbthreads') . ') * COUNT(DISTINCT ' .
-            $DB->quoteName('TABLE.id') . ') / COUNT(*)'
+            $DB->quoteName('TABLE.id') . ') / COUNT(*)',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       $tab[] = [
@@ -253,7 +255,8 @@ class DeviceProcessor extends CommonDevice {
          'joinparams'         => $main_joinparams,
          'computation'        =>
             'SUM(' . $DB->quoteName('TABLE.frequency') . ') / COUNT(' .
-            $DB->quoteName('TABLE.id') . ')'
+            $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
       ];
 
       return $tab;

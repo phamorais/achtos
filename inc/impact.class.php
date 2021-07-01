@@ -1,4 +1,34 @@
 <?php
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2021 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -126,24 +156,30 @@ class Impact extends CommonGLPI {
          $linked_items = $item->getLinkedItems();
 
          // Search for a valid linked item of this ITILObject
-         $found = false;
+         $items_data = [];
          foreach ($linked_items as $itemtype => $linked_item_ids) {
             $class = $itemtype;
             if (self::isEnabled($class)) {
                $item = new $class;
                foreach ($linked_item_ids as $linked_item_id) {
-                  $found = $item->getFromDB($linked_item_id);
-                  break 2;
+                  if (!$item->getFromDB($linked_item_id)) {
+                     continue;
+                  }
+                  $items_data[] = [
+                     'itemtype' => $itemtype,
+                     'items_id' => $linked_item_id,
+                     'name'     => $item->getNameID(),
+                  ];
                }
             }
          }
 
          // No valid linked item were found, tab shouldn't be visible
-         if (!$found) {
+         if (empty($items_data)) {
             return false;
          }
 
-         self::printAssetSelectionForm($linked_items);
+         self::printAssetSelectionForm($items_data);
       }
 
       // Check is the impact analysis is enabled for $class
@@ -768,6 +804,7 @@ class Impact extends CommonGLPI {
     * Print the asset selection form used in the impact tab of ITIL objects
     *
     * @param array $items
+    *    Each array should contains "itemtype", "items_id" and "name".
     *
     * @since 9.5
     */

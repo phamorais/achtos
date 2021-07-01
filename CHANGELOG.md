@@ -3,6 +3,32 @@
 The present file will list all changes made to the project; according to the
 [Keep a Changelog](http://keepachangelog.com/) project.
 
+## [9.5.5] unreleased
+
+### API changes
+
+#### Changed
+
+- Remove deprecation of `Search::getMetaReferenceItemtype()`
+
+
+## [9.5.4] 2021-03-02
+
+### Changed
+
+- `iframe` elements are not anymore allowed in rich text unless `GLPI_ALLOW_IFRAME_IN_RICH_TEXT` constant is defined to `true`
+
+### API changes
+
+#### Deprecated
+
+- `Search::getMetaReferenceItemtype()`
+
+## [9.5.3] 2020-11-25
+
+### Deprecated
+- Usage of alternative DB connection encoding (`DB::$dbenc` property).
+
 ## [9.5.2] 2020-10-07
 
 ### API changes

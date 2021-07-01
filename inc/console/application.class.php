@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -69,6 +69,13 @@ class Application extends BaseApplication {
    const ERROR_MISSING_REQUIREMENTS = 128; // start application codes at 128 be sure to be different from commands codes
 
    /**
+    * Error code returned when DB is not up-to-date.
+    *
+    * @var integer
+    */
+   const ERROR_DB_OUTDATED = 129;
+
+   /**
     * Pointer to $CFG_GLPI.
     * @var array
     */
@@ -106,9 +113,9 @@ class Application extends BaseApplication {
       $loader = new CommandLoader(false);
       $this->setCommandLoader($loader);
 
-      $use_plugins = $this->usePlugins();
-      if ($use_plugins) {
-         $this->loadActivePlugins();
+      if ($this->usePlugins()) {
+         $plugin = new Plugin();
+         $plugin->init(true);
          $loader->setIncludePlugins(true);
       }
    }
@@ -223,6 +230,16 @@ class Application extends BaseApplication {
    protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output) {
 
       $begin_time = microtime(true);
+
+      if ($command instanceof GlpiCommandInterface && $command->requiresUpToDateDb()
+          && (!array_key_exists('dbversion', $this->config) || (trim($this->config['dbversion']) != GLPI_SCHEMA_VERSION))) {
+         $output->writeln(
+            '<error>'
+            . __('The version of the database is not compatible with the version of the installed files. An update is necessary.')
+            . '</error>'
+         );
+         return self::ERROR_DB_OUTDATED;
+      }
 
       if ($command instanceof GlpiCommandInterface && $command->mustCheckMandatoryRequirements()
           && !$this->checkCoreMandatoryRequirements()) {
@@ -411,26 +428,14 @@ class Application extends BaseApplication {
    }
 
    /**
-    * Load active plugins.
-    *
-    * @return void
-    */
-   private function loadActivePlugins() {
-
-      if (!($this->db instanceof DB) || !$this->db->connected) {
-         return;
-      }
-
-      $plugin = new Plugin();
-      $plugin->init(true);
-   }
-
-   /**
     * Whether or not plugins have to be used.
     *
     * @return boolean
     */
    private function usePlugins() {
+      if (!($this->db instanceof DB) || !$this->db->connected) {
+         return false;
+      }
 
       $input = new ArgvInput();
 

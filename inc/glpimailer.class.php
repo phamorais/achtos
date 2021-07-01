@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -70,10 +70,11 @@ class GLPIMailer extends PHPMailer {
 
          if ($CFG_GLPI['smtp_mode'] == MAIL_SMTPSSL) {
             $this->SMTPSecure = "ssl";
-         }
-
-         if ($CFG_GLPI['smtp_mode'] == MAIL_SMTPTLS) {
+         } else if ($CFG_GLPI['smtp_mode'] == MAIL_SMTPTLS) {
             $this->SMTPSecure = "tls";
+         } else {
+            // Don't automatically enable encryption if the GLPI config doesn't specify it
+            $this->SMTPAutoTLS = false;
          }
 
          if (!$CFG_GLPI['smtp_check_certificate']) {

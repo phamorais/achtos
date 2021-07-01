@@ -1,0 +1,12 @@
+
+/config/config_path.php
+/config/local_define.php
+/tests/config_db*
+/.buildpath
+/.project
+/.settings/
+/.vscode/
+/.idea/
+/nbproject
+.composer.hash
+/db/

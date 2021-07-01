@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -59,13 +59,10 @@ class NotificationTargetSavedSearch_Alert extends NotificationTarget {
                   $search->getName(),
                   $search->getID()
                );
-            } else {
-               $events[$row['event']] = __('Private search alert');
             }
          }
-      } else {
-         $events['alert'] = __('Private search alert');
       }
+      $events['alert'] = __('Private search alert');
 
       return $events;
    }

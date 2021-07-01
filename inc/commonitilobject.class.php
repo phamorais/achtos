@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -3345,13 +3345,7 @@ abstract class CommonITILObject extends CommonDBTM {
          'name'               => __('Time to resolve exceedeed'),
          'datatype'           => 'bool',
          'massiveaction'      => false,
-         'computation'        =>
-            'IF(' . $DB->quoteName('TABLE.time_to_resolve') . ' IS NOT NULL
-               AND ' . $DB->quoteName('TABLE.status') . ' <> 4
-               AND (' . $DB->quoteName('TABLE.solvedate') . ' > ' . $DB->quoteName('TABLE.time_to_resolve') . '
-                     OR (' . $DB->quoteName('TABLE.solvedate') . ' IS NULL
-                        AND ' . $DB->quoteName('TABLE.time_to_resolve') . ' < NOW())),
-               1, 0)'
+         'computation'        => self::generateSLAOLAComputation('time_to_resolve')
       ];
 
       $tab[] = [
@@ -3801,6 +3795,34 @@ abstract class CommonITILObject extends CommonDBTM {
       ];
 
       return $tab;
+   }
+
+   static function generateSLAOLAComputation($type, $table = "TABLE") {
+      global $DB;
+
+      switch ($type) {
+         case 'internal_time_to_own':
+         case 'time_to_own':
+            return 'IF('.$DB->quoteName($table.'.'.$type).' IS NOT NULL
+            AND '.$DB->quoteName($table.'.status').' <> '.self::WAITING.'
+            AND ('.$DB->quoteName($table.'.takeintoaccount_delay_stat').'
+                        > TIME_TO_SEC(TIMEDIFF('.$DB->quoteName($table.'.'.$type).',
+                                               '.$DB->quoteName($table.'.date').'))
+                 OR ('.$DB->quoteName($table.'.takeintoaccount_delay_stat').' = 0
+                      AND '.$DB->quoteName($table.'.'.$type).' < NOW())),
+            1, 0)';
+            break;
+
+         case 'internal_time_to_resolve':
+         case 'time_to_resolve':
+            return 'IF(' . $DB->quoteName($table.'.'.$type) . ' IS NOT NULL
+            AND ' . $DB->quoteName($table.'.status') . ' <> 4
+            AND (' . $DB->quoteName($table.'.solvedate') . ' > ' . $DB->quoteName($table.'.'.$type) . '
+                  OR (' . $DB->quoteName($table.'.solvedate') . ' IS NULL
+                     AND ' . $DB->quoteName($table.'.'.$type) . ' < NOW())),
+            1, 0)';
+            break;
+      }
    }
 
    /**
@@ -4640,6 +4662,9 @@ abstract class CommonITILObject extends CommonDBTM {
             $this->showActorAddFormOnCreate(CommonITILActor::OBSERVER, $options);
             echo '<hr>';
          } else { // predefined value
+            if (!is_array($options['_users_id_observer'])) {
+               $options['_users_id_observer'] = [$options['_users_id_observer']];
+            }
             if (isset($options["_users_id_observer"][0]) && $options["_users_id_observer"][0]) {
                echo static::getActorIcon('user', CommonITILActor::OBSERVER)."&nbsp;";
                echo Dropdown::getDropdownName("glpi_users", $options["_users_id_observer"][0]);
@@ -6688,15 +6713,14 @@ abstract class CommonITILObject extends CommonDBTM {
          $total_actiontime = 0;
 
          $criteria = [
-            'SELECT'   => 'actiontime',
-            'DISTINCT' => true,
+            'SELECT'   => ['SUM' => 'actiontime AS actiontime'],
             'FROM'     => $task_table,
             'WHERE'    => [$foreignKey => $this->fields['id']]
          ];
 
-         $iterator = $DB->request($criteria);
-         foreach ($iterator as $req) {
-            $total_actiontime += $req['actiontime'];
+         $req = $DB->request($criteria);
+         if ($row = $req->next()) {
+            $total_actiontime = $row['actiontime'];
          }
          if ($total_actiontime > 0) {
             echo "<h3>";
@@ -6781,7 +6805,9 @@ abstract class CommonITILObject extends CommonDBTM {
          $restrict_task = [
             'OR' => [
                'is_private'   => 0,
-               'users_id'     => Session::getLoginUserID()
+               'users_id'     => Session::getCurrentInterface() == "central"
+                                    ? Session::getLoginUserID()
+                                    : 0
             ]
          ];
       }
@@ -7331,7 +7357,11 @@ abstract class CommonITILObject extends CommonDBTM {
                echo "<a href='{$item_i['link']}' target='_blank'><i class='fa fa-external-link'></i>{$item_i['name']}</a>";
             }
             if (!empty($item_i['mime'])) {
-               echo "&nbsp;(".$item_i['mime'].")";
+               echo "&nbsp;";
+               echo Html::showToolTip(
+                  sprintf(__('File size: %s'), Toolbox::getSize(filesize(GLPI_VAR_DIR . "/" . $item_i['filepath']))) . '<br>'
+                  . sprintf(__('MIME type: %s'), $item_i['mime'])
+               );
             }
             echo "<span class='buttons'>";
             echo "<a href='".Document::getFormURLWithID($item_i['id'])."' class='edit_document fa fa-eye pointer' title='".
@@ -7480,7 +7510,7 @@ abstract class CommonITILObject extends CommonDBTM {
       $rand = mt_rand();
 
       if (!isset($options['template_preview']) || !$options['template_preview']) {
-         $output = "<form method='post' name='form_ticket' enctype='multipart/form-data' action='".static::getFormURL()."''";
+         $output = "<form method='post' name='form_ticket' enctype='multipart/form-data' action='".static::getFormURL()."'";
          if ($ID) {
             $output .= " data-track-changes='true'";
          }
@@ -7924,7 +7954,7 @@ abstract class CommonITILObject extends CommonDBTM {
 
             default:
                $field = '';
-               Toolbox::logError('Missing type for Ticket template!');
+               trigger_error('Missing type for Ticket template!', E_USER_WARNING);
                break;
          }
       }

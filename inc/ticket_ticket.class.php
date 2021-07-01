@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -92,9 +92,9 @@ class Ticket_Ticket extends CommonDBRelation {
                   foreach ($ids as $id) {
                      $input2                          = [];
                      $input2['id']                    = $input['tickets_id_1'];
-                     $input2['_link']['tickets_id_1'] = $input['tickets_id_1'];
+                     $input2['_link']['tickets_id_1'] = $id;
                      $input2['_link']['link']         = $input['link'];
-                     $input2['_link']['tickets_id_2'] = $id;
+                     $input2['_link']['tickets_id_2'] = $input['tickets_id_1'];
                      if ($item->can($input['tickets_id_1'], UPDATE)) {
                         if ($ticket->update($input2)) {
                            $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_OK);

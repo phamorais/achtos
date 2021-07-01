@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -62,6 +62,10 @@ if (!isset($_GET["withtemplate"])) {
    $_GET["withtemplate"] = "";
 }
 
+if (isset($_GET['id']) && !empty($_GET['id'])) {
+   $_GET['id'] = (int)$_GET['id'];
+}
+
 if ($item = getItemForItemtype($_UGET['_itemtype'])) {
    if ($item->get_item_to_display_tab) {
       // No id if ruleCollection but check right
@@ -79,7 +83,16 @@ if ($item = getItemForItemtype($_UGET['_itemtype'])) {
    }
 }
 
-$notvalidoptions = ['_glpi_tab', '_itemtype', 'sort', 'order', 'withtemplate'];
+if (isset($_GET['_target'])) {
+   $_GET['_target'] = Toolbox::cleanTarget($_GET['_target']);
+}
+
+$tabs = Toolbox::getAvailablesTabs($_UGET['_itemtype'], $_GET['id'] ?? null);
+if (isset($tabs[$_GET['_glpi_tab']])) {
+   Session::setActiveTab($_UGET['_itemtype'], $_GET['_glpi_tab']);
+}
+
+$notvalidoptions = ['_glpi_tab', '_itemtype', 'sort', 'order', 'withtemplate', 'formoptions'];
 $options         = $_GET;
 foreach ($notvalidoptions as $key) {
    if (isset($options[$key])) {
@@ -89,6 +102,7 @@ foreach ($notvalidoptions as $key) {
 if (isset($options['locked'])) {
    ObjectLock::setReadOnlyProfile();
 }
+
 CommonGLPI::displayStandardTab($item, $_UGET['_glpi_tab'], $_GET["withtemplate"], $options);
 
 

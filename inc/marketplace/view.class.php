@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -452,33 +452,46 @@ JS;
       $plugin_state = Plugin::getStateKey($plugin_inst->fields['state'] ?? -1);
       $buttons      = self::getButtons($plugin_key);
 
-      $authors = implode(', ', array_column($plugin['authors'] ?? [], 'name', 'id'));
+      $name = Html::clean($plugin['name']);
+      $description = Html::clean($plugin['description']);
+
+      $authors = Html::clean(implode(', ', array_column($plugin['authors'] ?? [], 'name', 'id')), false);
       $authors_title = Html::clean($authors);
       $authors = strlen($authors)
-         ? "<i class='fas fa-fw fa-user-friends'></i>$authors"
+         ? "<i class='fas fa-fw fa-user-friends'></i>{$authors}"
          : "";
-      $licence = is_string($plugin['license']) && isset($plugin['license']) && strlen($plugin['license'])
-         ? "<i class='fas fa-fw fa-balance-scale'></i>{$plugin['license']}"
+
+      $licence = Html::clean($plugin['license'] ?? '');
+      $licence = strlen($licence)
+         ? "<i class='fas fa-fw fa-balance-scale'></i>{$licence}"
          : "";
-      $version = strlen($plugin['version'] ?? "")
-         ? "<i class='fas fa-fw fa-code-branch'></i>".$plugin['version']
+
+      $version = Html::clean($plugin['version'] ?? '');
+      $version = strlen($version)
+         ? "<i class='fas fa-fw fa-code-branch'></i>{$version}"
          : "";
+
       $stars = ($plugin['note'] ?? -1) > 0
          ? self::getStarsHtml($plugin['note'])
          : "";
 
-      $home_url = strlen($plugin['homepage_url'] ?? "")
-         ? "<a href='{$plugin['homepage_url']}' target='_blank' >
+      $home_url = Html::entities_deep($plugin['homepage_url'] ?? "");
+      $home_url = strlen($home_url)
+         ? "<a href='{$home_url}' target='_blank' >
             <i class='fas fa-home add_tooltip' title='".__s("Homepage")."'></i>
             </a>"
          : "";
-      $issues_url = strlen($plugin['issues_url'] ?? "")
-         ? "<a href='{$plugin['issues_url']}' target='_blank' >
+
+      $issues_url = Html::entities_deep($plugin['issues_url'] ?? "");
+      $issues_url = strlen($issues_url)
+         ? "<a href='{$issues_url}' target='_blank' >
             <i class='fas fa-bug add_tooltip' title='".__s("Get help")."'></i>
             </a>"
          : "";
-      $readme_url = strlen($plugin['readme_url'] ?? "")
-         ? "<a href='{$plugin['readme_url']}' target='_blank' >
+
+      $readme_url = Html::entities_deep($plugin['readme_url'] ?? "");
+      $readme_url = strlen($readme_url)
+         ? "<a href='{$readme_url}' target='_blank' >
             <i class='fas fa-book add_tooltip' title='".__s("Readme")."'></i>
             </a>"
          : "";
@@ -491,9 +504,9 @@ JS;
             <div class="main">
                <span class="icon">{$icon}</span>
                <span class="details">
-                  <h3 class="title">{$plugin['name']}</h3>
+                  <h3 class="title">{$name}</h3>
                   $network
-                  <p class="description">{$plugin['description']}</p>
+                  <p class="description">{$description}</p>
                </span>
                <span class="buttons">
                   {$buttons}
@@ -522,7 +535,7 @@ HTML;
             <div class="main">
                <span class="icon">{$icon}</span>
                <span class="details">
-                  <h3 class="title">{$plugin['name']}</h3>
+                  <h3 class="title">{$name}</h3>
                   <span class='misc-right'>
                      <div class="license">{$licence}</div>
                      <div class="authors" title="{$authors_title}">{$authors}</div>
@@ -635,7 +648,7 @@ HTML;
             <i class='fas fa-broom'></i>
          </button>";
       } else if ((!$exists && !$mk_controller->hasWriteAccess())
-         || ($has_web_update && !$can_be_overwritten)) {
+         || ($has_web_update && !$can_be_overwritten && GLPI_MARKETPLACE_MANUAL_DOWNLOADS)) {
          $plugin_data = $mk_controller->getAPI()->getPlugin($plugin_key);
          if (array_key_exists('installation_url', $plugin_data) && $can_be_downloaded) {
             $warning = "";
@@ -754,10 +767,12 @@ HTML;
     */
    static function getPluginIcon(array $plugin = []) {
       $icon = "";
-      if (strlen($plugin['logo_url'])) {
-         $icon = "<img src='{$plugin['logo_url']}'>";
+
+      $logo_url = Html::entities_deep($plugin['logo_url'] ?? "");
+      if (strlen($logo_url)) {
+         $icon = "<img src='{$logo_url}'>";
       } else {
-         $words = explode(" ", $plugin['name']);
+         $words = explode(" ", Html::clean($plugin['name']));
          $initials = "";
          for ($i = 0; $i < 2; $i++) {
             if (isset($words[$i])) {

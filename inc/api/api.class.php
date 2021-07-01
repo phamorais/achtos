@@ -3,7 +3,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -1299,7 +1299,9 @@ abstract class API extends CommonGLPI {
       }
 
       // filter with entity
-      if ($item->isEntityAssign()
+      if ($item->getType() == 'Entity') {
+         $where.= " AND (" . getEntitiesRestrictRequest("", $itemtype::getTable()) . ")";
+      } else if ($item->isEntityAssign()
           // some CommonDBChild classes may not have entities_id fields and isEntityAssign still return true (like ITILTemplateMandatoryField)
           && array_key_exists('entities_id', $item->fields)) {
          $where.= " AND (". getEntitiesRestrictRequest("",
@@ -2474,6 +2476,10 @@ abstract class API extends CommonGLPI {
             }
             if ($key == "default_requesttypes_id") {
                $key = "requesttypes_id";
+            }
+            // mainitems_id mainitemtype
+            if ($key == "mainitems_id" && isset($fields['mainitemtype'])) {
+               $key = getForeignKeyFieldForItemType($fields['mainitemtype']);
             }
 
             if (!empty($value)

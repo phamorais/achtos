@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -267,6 +267,15 @@ class Document extends CommonDBTM {
          $input['documentcategories_id'] = $CFG_GLPI["documentcategories_id_forticket"];
       }
 
+      if (isset($input['link']) && !empty($input['link']) && !Toolbox::isValidWebUrl($input['link'])) {
+         Session::addMessageAfterRedirect(
+            __('Invalid link'),
+            false,
+            ERROR
+         );
+         return false;
+      }
+
       /* Unicity check
       if (isset($input['sha1sum'])) {
          // Check if already upload in the current entity
@@ -335,6 +344,15 @@ class Document extends CommonDBTM {
 
       unset($input['current_filepath']);
       unset($input['current_filename']);
+
+      if (isset($input['link']) && !empty($input['link'])  && !Toolbox::isValidWebUrl($input['link'])) {
+         Session::addMessageAfterRedirect(
+            __('Invalid link'),
+            false,
+            ERROR
+         );
+         return false;
+      }
 
       return $input;
    }
@@ -1502,15 +1520,15 @@ class Document extends CommonDBTM {
     * @return string Image path on disk
     */
    public static function getImage($path, $context, $mwidth = null, $mheight = null) {
-      if ($mwidth === null && $mheight === null) {
+      if ($mwidth === null || $mheight === null) {
          switch ($context) {
             case 'mail':
-               $mwidth = 400;
-               $mheight = 300;
+               $mwidth  = $mwidth ?? 400;
+               $mheight = $mheight ?? 300;
                break;
             case 'timeline':
-               $mwidth = 100;
-               $mheight = 100;
+               $mwidth  = $mwidth ?? 100;
+               $mheight = $mheight ?? 100;
                break;
             default:
                throw new \RuntimeException("Unknown context $context!");

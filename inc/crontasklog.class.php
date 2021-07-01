@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -43,6 +43,7 @@ class CronTaskLog extends CommonDBTM{
    const STATE_START = 0;
    const STATE_RUN   = 1;
    const STATE_STOP  = 2;
+   const STATE_ERROR = 3;
 
 
    /**

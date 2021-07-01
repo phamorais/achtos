@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -1962,7 +1962,7 @@ class RuleCollection extends CommonDBTM {
          }
          $item->title();
          $item->showEngineSummary();
-         $item->showListRules($_GET['_target'], $options);
+         $item->showListRules(Toolbox::cleanTarget($_GET['_target']), $options);
          return true;
       }
       return false;

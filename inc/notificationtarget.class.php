@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -234,12 +234,30 @@ class NotificationTarget extends CommonDBChild {
    }
 
    /**
+    * Get a unique message id.
+    *
     * @since 0.84
     *
-    * @return message id for notification
-   **/
+    * @return string
+    */
    function getMessageID() {
-      return '';
+      if ($this->obj instanceof CommonDBTM) {
+         return sprintf(
+            'GLPI-%s-%s.%s.%s@%s',
+            $this->obj->getType(),
+            $this->obj->getField('id'),
+            time(),
+            rand(),
+            php_uname('n')
+         );
+      }
+
+      return sprintf(
+         'GLPI.%s.%s@%s',
+         time(),
+         rand(),
+         php_uname('n')
+      );
    }
 
 
@@ -1037,13 +1055,13 @@ class NotificationTarget extends CommonDBChild {
          $sender['email'] = $CFG_GLPI['from_email'];
          $sender['name']  = $CFG_GLPI['from_email_name'];
       } else {
-         $entity = new \Entity();
-         $entity->getFromDB($this->getEntity());
+         $admin_email      = trim(Entity::getUsedConfig('admin_email', $this->getEntity(), '', ''));
+         $admin_email_name = trim(Entity::getUsedConfig('admin_email_name', $this->getEntity(), '', ''));
 
-         if (NotificationMailing::isUserAddressValid($entity->fields['admin_email'])) {
+         if (NotificationMailing::isUserAddressValid($admin_email)) {
             //If the entity administrator's address is defined, return it
-            $sender['email'] = $entity->fields['admin_email'];
-            $sender['name']  = $entity->fields['admin_email_name'];
+            $sender['email'] = $admin_email;
+            $sender['name']  = $admin_email_name;
          } else {
             //Entity admin is not defined, return the global admin's address
             $sender['email'] = $CFG_GLPI['admin_email'];
@@ -1078,20 +1096,24 @@ class NotificationTarget extends CommonDBChild {
     * @return the reply to address
    **/
    public function getReplyTo($options = []) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
       //If the entity administrator's address is defined, return it
-      foreach ($DB->request('glpi_entities',
-               ['id' => $this->getEntity()]) as $data) {
+      $admin_reply      = trim(Entity::getUsedConfig('admin_reply', $this->getEntity(), '', ''));
+      $admin_reply_name = trim(Entity::getUsedConfig('admin_reply_name', $this->getEntity(), '', ''));
 
-         if (NotificationMailing::isUserAddressValid($data['admin_reply'])) {
-            return ['email' => $data['admin_reply'],
-                    'name'  => $data['admin_reply_name']];
-         }
+      if (NotificationMailing::isUserAddressValid($admin_reply)) {
+         return [
+            'email' => $admin_reply,
+            'name'  => $admin_reply_name,
+         ];
       }
+
       //Entity admin is not defined, return the global admin's address
-      return ['email' => $CFG_GLPI['admin_reply'],
-              'name'  => $CFG_GLPI['admin_reply_name']];
+      return [
+         'email' => $CFG_GLPI['admin_reply'],
+         'name'  => $CFG_GLPI['admin_reply_name']
+      ];
    }
 
 

@@ -508,10 +508,10 @@ var GLPIPlanning  = {
          },
          eventClick: function(info) {
             var event    = info.event;
-            var start    = event.start;
-            var ajaxurl  = event.extendedProps.ajaxurl+"&start="+start.toISOString();
             var editable = event.extendedProps._editable; // do not know why editable property is not available
-            if (ajaxurl && editable && !disable_edit) {
+            if (event.extendedProps.ajaxurl && editable && !disable_edit) {
+               var start    = event.start;
+               var ajaxurl  = event.extendedProps.ajaxurl+"&start="+start.toISOString();
                info.jsEvent.preventDefault(); // don't let the browser navigate
                $('<div></div>')
                   .dialog({
@@ -523,7 +523,15 @@ var GLPIPlanning  = {
                      }
                   })
                   .load(ajaxurl, function() {
-                     $(this).dialog('option', 'position', ['center', 'center'] );
+                     $(this).dialog({
+                        position: {
+                           my: 'center',
+                           at: 'center',
+                           viewport: $(window),
+                           of: $('#page'),
+                           collision: 'fit'
+                        }
+                     });
                   });
             }
          },
@@ -565,7 +573,15 @@ var GLPIPlanning  = {
                         res_items_id: items_id,
                      },
                      function() {
-                        $(this).dialog('option', 'position', ['center', 'center'] );
+                        $(this).dialog({
+                           position: {
+                              my: 'center',
+                              at: 'center',
+                              viewport: $(window),
+                              of: $('#page'),
+                              collision: 'fit'
+                           }
+                        });
                      }
                   );
                },
@@ -575,7 +591,7 @@ var GLPIPlanning  = {
                },
                position: {
                   my: 'center',
-                  at: 'top',
+                  at: 'center top',
                   viewport: $(window),
                   of: $('#page')
                }

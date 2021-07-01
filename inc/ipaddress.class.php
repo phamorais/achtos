@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -753,30 +753,27 @@ class IPAddress extends CommonDBChild {
       $textual     = [];
       $currentNull = "";
       foreach ($address as $singleton) {
-         if (is_numeric($singleton)) {
-            $singleton = floatval($singleton);
-         }
-         if (is_float($singleton) || is_double($singleton)) {
-            $binary[]  = floatval($singleton);
-            $singleton = str_pad(dechex($singleton), 8, "0", STR_PAD_LEFT);
-            $elt       = ltrim(substr($singleton, 0, 4), "0");
-            if (empty($elt)) {
-               $textual[]    = "0";
-               $currentNull .= "1";
-            } else {
-               $currentNull .= "0";
-               $textual[]    = $elt;
-            }
-            $elt = ltrim(substr($singleton, 4, 4), "0");
-            if (empty($elt)) {
-               $textual[]    = "0";
-               $currentNull .= "1";
-            } else {
-               $currentNull .= "0";
-               $textual[]    = $elt;
-            }
-         } else {
+         if (!is_numeric($singleton)) {
             return false;
+         }
+         $singleton = (int)$singleton;
+         $binary[]  = $singleton;
+         $singleton = str_pad(dechex($singleton), 8, "0", STR_PAD_LEFT);
+         $elt       = ltrim(substr($singleton, 0, 4), "0");
+         if (empty($elt)) {
+            $textual[]    = "0";
+            $currentNull .= "1";
+         } else {
+            $currentNull .= "0";
+            $textual[]    = $elt;
+         }
+         $elt = ltrim(substr($singleton, 4, 4), "0");
+         if (empty($elt)) {
+            $textual[]    = "0";
+            $currentNull .= "1";
+         } else {
+            $currentNull .= "0";
+            $textual[]    = $elt;
          }
       }
 

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -957,7 +957,7 @@ class NetworkPort extends CommonDBChild {
          'id'                 => '88',
          'table'              => 'glpi_vlans',
          'field'              => 'name',
-         'name'               => __('VLAN'),
+         'name'               => Vlan::getTypeName(1),
          'datatype'           => 'dropdown',
          'forcegroupby'       => true,
          'massiveaction'      => false,

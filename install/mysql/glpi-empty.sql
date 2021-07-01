@@ -1,7 +1,7 @@
 # /**
 #  * ---------------------------------------------------------------------
 #  * GLPI - Gestionnaire Libre de Parc Informatique
-#  * Copyright (C) 2015-2020 Teclib' and contributors.
+#  * Copyright (C) 2015-2021 Teclib' and contributors.
 #  *
 #  * http://glpi-project.org
 #  *
@@ -38,7 +38,7 @@ CREATE TABLE `glpi_alerts` (
   `itemtype` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `items_id` int(11) NOT NULL DEFAULT '0',
   `type` int(11) NOT NULL DEFAULT '0' COMMENT 'see define.php ALERT_* constant',
-  `date` timestamp NOT NULL,
+  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unicity` (`itemtype`,`items_id`,`type`),
   KEY `type` (`type`),
@@ -1235,7 +1235,7 @@ CREATE TABLE `glpi_impactitems` (
 DROP TABLE IF EXISTS `glpi_impactcontexts`;
 CREATE TABLE `glpi_impactcontexts` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `positions` TEXT NOT NULL DEFAULT '' COLLATE 'utf8_unicode_ci',
+  `positions` TEXT NOT NULL COLLATE 'utf8_unicode_ci',
   `zoom` FLOAT NOT NULL DEFAULT '0',
   `pan_x` FLOAT NOT NULL DEFAULT '0',
   `pan_y` FLOAT NOT NULL DEFAULT '0',
@@ -1514,7 +1514,7 @@ CREATE TABLE `glpi_crontasklogs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `crontasks_id` int(11) NOT NULL,
   `crontasklogs_id` int(11) NOT NULL COMMENT 'id of ''start'' event',
-  `date` timestamp NOT NULL,
+  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `state` int(11) NOT NULL COMMENT '0:start, 1:run, 2:stop',
   `elapsed` float NOT NULL COMMENT 'time elapsed since start',
   `volume` int(11) NOT NULL COMMENT 'for statistics',
@@ -4514,7 +4514,7 @@ CREATE TABLE `glpi_notimportedemails` (
   `from` varchar(255) NOT NULL,
   `to` varchar(255) NOT NULL,
   `mailcollectors_id` int(11) NOT NULL DEFAULT '0',
-  `date` timestamp NOT NULL,
+  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `subject` text,
   `messageid` varchar(255) NOT NULL,
   `reason` int(11) NOT NULL DEFAULT '0',
@@ -5277,6 +5277,7 @@ CREATE TABLE `glpi_profiles_users` (
   `entities_id` int(11) NOT NULL DEFAULT '0',
   `is_recursive` tinyint(1) NOT NULL DEFAULT '1',
   `is_dynamic` tinyint(1) NOT NULL DEFAULT '0',
+  `is_default_profile` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `entities_id` (`entities_id`),
   KEY `profiles_id` (`profiles_id`),

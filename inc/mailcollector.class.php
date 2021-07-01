@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -136,9 +136,6 @@ class MailCollector  extends CommonDBTM {
    }
 
    public function prepareInput(array $input, $mode = 'add') :array {
-      if ('add' === $mode && !isset($input['name']) || empty($input['name'])) {
-         Session::addMessageAfterRedirect(__('Invalid email address'), false, ERROR);
-      }
 
       if (isset($input["passwd"])) {
          if (empty($input["passwd"])) {
@@ -150,10 +147,6 @@ class MailCollector  extends CommonDBTM {
 
       if (isset($input['mail_server']) && !empty($input['mail_server'])) {
          $input["host"] = Toolbox::constructMailServerConfig($input);
-      }
-
-      if (isset($input['name']) && !NotificationMailing::isUserAddressValid($input['name'])) {
-         Session::addMessageAfterRedirect(__('Invalid email address'), false, ERROR);
       }
 
       return $input;
@@ -229,8 +222,11 @@ class MailCollector  extends CommonDBTM {
       $options['colspan'] = 1;
       $this->showFormHeader($options);
 
-      echo "<tr class='tab_bg_1'><td>".sprintf(__('%1$s (%2$s)'), __('Name'), __('Email address')).
-           "</td><td>";
+      echo "<tr class='tab_bg_1'><td>";
+      echo __('Name');
+      echo '&nbsp;';
+      Html::showToolTip(__('If name is a valid email address, it will be automatically added to blacklisted senders.'));
+      echo "</td><td>";
       Html::autocompletionTextField($this, "name");
       echo "</td></tr>";
 
@@ -722,7 +718,7 @@ class MailCollector  extends CommonDBTM {
 
                try {
                   $this->fetch_emails++;
-                  $messages[$this->storage->key()] = $this->storage->current();
+                  $messages[$this->storage->getUniqueId($this->storage->key())] = $this->storage->current();
                } catch (\Exception $e) {
                   Toolbox::logInFile('mailgate', sprintf(__('Message is invalid: %1$s').'<br/>', $e->getMessage()));
                   ++$error;
@@ -733,6 +729,10 @@ class MailCollector  extends CommonDBTM {
 
                $rejinput = [
                   'mailcollectors_id' => $mailgateID,
+                  'from'              => '',
+                  'to'                => '',
+                  'messageid'         => '',
+                  'date'              => $_SESSION["glpi_currenttime"],
                ];
 
                //prevent loop when message is read but when it's impossible to move / delete
@@ -764,7 +764,6 @@ class MailCollector  extends CommonDBTM {
                      $rejinput['subject']           = $DB->escape($this->cleanSubject($headers['subject']));
                      $rejinput['messageid']         = $headers['message_id'];
                   }
-                  $rejinput['date']              = $_SESSION["glpi_currenttime"];
                } catch (Throwable $e) {
                   $error++;
                   Toolbox::logInFile('mailgate', sprintf(__('Error during message parsing: %1$s').'<br/>', $e->getMessage()));
@@ -958,21 +957,20 @@ class MailCollector  extends CommonDBTM {
       $tkt['_blacklisted'] = false;
       // For RuleTickets
       $tkt['_mailgate']    = $options['mailgates_id'];
+      $tkt['_uid']         = $uid;
 
       // Use mail date if it's defined
       if ($this->fields['use_mail_date'] && isset($headers['date'])) {
          $tkt['date'] = $headers['date'];
       }
 
-      // Detect if it is a mail reply
-      $glpi_message_match = "/GLPI-([0-9]+)\.[0-9]+\.[0-9]+@\w*/";
-
-      // Check if email not send by GLPI : if yes -> blacklist
-      if (!isset($headers['message_id'])
-          || preg_match($glpi_message_match, $headers['message_id'], $match)) {
+      if ($this->isMessageSentByGlpi($message)) {
+         // Message was sent by GLPI.
+         // Message is blacklisted to avoid infinite loop (where GLPI creates a ticket from its own notification).
          $tkt['_blacklisted'] = true;
          return $tkt;
       }
+
       // manage blacklist
       $blacklisted_emails   = Blacklist::getEmails();
       // Add name of the mailcollector as blacklisted
@@ -1067,23 +1065,10 @@ class MailCollector  extends CommonDBTM {
          $tkt['content'] = $body;
       }
 
-      // prepare match to find ticket id in headers
-      // header is added in all notifications using pattern: GLPI-{itemtype}-{items_id}
-      $ref_match = "/GLPI-Ticket-([0-9]+)/";
-
-      // See In-Reply-To field
-      if (isset($headers['in_reply_to'])) {
-         if (preg_match($ref_match, $headers['in_reply_to'], $match)) {
-            $tkt['tickets_id'] = intval($match[1]);
-         }
-      }
-
-      // See in References
-      if (!isset($tkt['tickets_id'])
-          && isset($headers['references'])) {
-         if (preg_match($ref_match, $headers['references'], $match)) {
-            $tkt['tickets_id'] = intval($match[1]);
-         }
+      // Search for referenced item in headers
+      $found_item = $this->getItemFromHeaders($message);
+      if ($found_item instanceof Ticket) {
+         $tkt['tickets_id'] = $found_item->fields['id'];
       }
 
       // See in title
@@ -1580,6 +1565,8 @@ class MailCollector  extends CommonDBTM {
             return false;
          }
 
+         $filename = Toolbox::filename($filename);
+
          //try to avoid conflict between inline image and attachment
          $i = 2;
          while (in_array($filename, $this->files)) {
@@ -1707,7 +1694,7 @@ class MailCollector  extends CommonDBTM {
       if (!empty($folder) && isset($this->fields[$folder]) && !empty($this->fields[$folder])) {
          $name = mb_convert_encoding($this->fields[$folder], "UTF7-IMAP", "UTF-8");
          try {
-            $this->storage->moveMessage($uid, $name);
+            $this->storage->moveMessage($this->storage->getNumberByUniqueId($uid), $name);
             return true;
          } catch (\Exception $e) {
             // raise an error and fallback to delete
@@ -1721,7 +1708,7 @@ class MailCollector  extends CommonDBTM {
             );
          }
       }
-      $this->storage->removeMessage($uid);
+      $this->storage->removeMessage($this->storage->getNumberByUniqueId($uid));
       return true;
    }
 
@@ -1956,6 +1943,93 @@ class MailCollector  extends CommonDBTM {
       return self::countCollectors(true);
    }
 
+   /**
+    * Try to retrieve an existing item from references in message headers.
+    * References corresponds to original MessageId sent by GLPI.
+    *
+    * @param Message $message
+    *
+    * @since 9.5.4
+    *
+    * @return CommonDBTM|null
+    */
+   public function getItemFromHeaders(Message $message): ?CommonDBTM {
+      $pattern = $this->getMessageIdExtractPattern();
+
+      foreach (['in_reply_to', 'references'] as $header_name) {
+         $matches = [];
+         if ($message->getHeaders()->has($header_name)
+             && preg_match($pattern, $message->getHeader($header_name)->getFieldValue(), $matches)) {
+            $itemtype = $matches['itemtype'];
+            $items_id = $matches['items_id'];
+
+            // Handle old format MessageId where itemtype was not in header
+            if (empty($itemtype) && !empty($items_id)) {
+               $itemtype = Ticket::getType();
+            }
+
+            if (empty($itemtype) || !class_exists($itemtype) || !is_a($itemtype, CommonDBTM::class, true)) {
+               // itemtype not found or invalid
+               continue;
+            }
+            $item = new $itemtype();
+            if (!empty($items_id) && $item->getFromDB($items_id)) {
+               return $item;
+            }
+         }
+      }
+
+      return null;
+   }
+
+   /**
+    * Check if message was sent by current instance of GLPI.
+    * This can be verified by checking the MessageId header.
+    *
+    * @param Message $message
+    *
+    * @since 9.5.4
+    *
+    * @return bool
+    */
+   public function isMessageSentByGlpi(Message $message): bool {
+      $pattern = $this->getMessageIdExtractPattern();
+
+      if (!$message->getHeaders()->has('message-id')) {
+         // Messages sent by GLPI now have always a message-id header.
+         return false;
+      }
+
+      $message_id = $message->getHeader('message_id')->getFieldValue();
+      $matches = [];
+      if (!preg_match($pattern, $message_id, $matches)) {
+         // message-id header does not match GLPI format.
+         return false;
+      }
+
+      return true;
+   }
+
+   /**
+    * Get pattern that can be used to extract informations from a GLPI MessageId (itemtype and items_id).
+    *
+    * @see NotificationTarget::getMessageID()
+    *
+    * @return string
+    */
+   private function getMessageIdExtractPattern(): string {
+      // old format:           GLPI-{$items_id}.{$time}.{$rand}@{$uname}
+      // without related item: GLPI.{$time}.{$rand}@{$uname}
+      // with related item:    GLPI-{$itemtype}-{$items_id}.{$time}.{$rand}@{$uname}
+
+      return '/GLPI'
+         . '(-(?<itemtype>[a-z]+))?' // itemtype is not present if notification is not related to any object and was not present in old format
+         . '(-(?<items_id>[0-9]+))?' // items_id is not present if notification is not related to any object
+         . '\.[0-9]+' // time()
+         . '\.[0-9]+' // rand()
+         . '@\w*' // uname
+         . '/i'; // insensitive
+   }
 
    /**
     * @param $name
@@ -2058,18 +2132,18 @@ class MailCollector  extends CommonDBTM {
 
       if (!$part->getHeaders()->has('content-type')
          || !(($content_type = $part->getHeader('content-type')) instanceof ContentType)
-          | preg_match('/^text\//', $content_type->getType()) !== 1) {
+         || preg_match('/^text\//', $content_type->getType()) !== 1) {
          return $contents; // No charset conversion content type header is not set or content is not text/*
       }
 
       $charset = $content_type->getParameter('charset');
-      if (strtoupper($charset) != 'UTF-8') {
-         if (in_array($charset, array_map('strtoupper', mb_list_encodings()))) {
+      if ($charset !== null && strtoupper($charset) != 'UTF-8') {
+         if (in_array(strtoupper($charset), array_map('strtoupper', mb_list_encodings()))) {
             $contents = mb_convert_encoding($contents, 'UTF-8', $charset);
          } else {
             // Convert Windows charsets names
-            if (preg_match('/^WINDOWS-\d{4}$/', $charset)) {
-               $charset = preg_replace('/^WINDOWS-(\d{4})$/', 'CP$1', $charset);
+            if (preg_match('/^WINDOWS-\d{4}$/i', $charset)) {
+               $charset = preg_replace('/^WINDOWS-(\d{4})$/i', 'CP$1', $charset);
             }
 
             if ($converted = iconv($charset, 'UTF-8//TRANSLIT', $contents)) {

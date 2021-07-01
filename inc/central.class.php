@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -314,6 +314,7 @@ class Central extends CommonGLPI {
             $warnings[] = sprintf(__('For security reasons, please change the password for the default users: %s'),
                                implode(" ", $accounts));
          }
+
          if (file_exists(GLPI_ROOT . "/install/install.php")) {
             $warnings[] = sprintf(__('For security reasons, please remove file: %s'),
                                "install/install.php");

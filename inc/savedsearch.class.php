@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -426,7 +426,9 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria {
       }
       if ($ID <= 0) { // add
          echo Html::hidden('users_id', ['value' => $this->fields['users_id']]);
-         echo Html::hidden('is_private', ['value' => $this->fields['is_private']]);
+         if (!self::canCreate()) {
+            echo Html::hidden('is_private', ['value' => 1]);
+         }
       } else {
          echo Html::hidden('id', ['value' => $ID]);
       }
